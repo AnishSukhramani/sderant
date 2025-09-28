@@ -1,13 +1,10 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback } from 'react'
 import Image from 'next/image'
 import { supabase } from '@/lib/supabase'
 import { Post, Comment } from '@/app/page'
 import { getUserIdentifier, formatTimeAgo } from '@/lib/utils'
-import type { Database } from '@/lib/supabase'
-
-type SupabaseClient = ReturnType<typeof import('@supabase/supabase-js').createClient<Database>>
 import { 
   Heart, 
   MessageCircle, 
@@ -35,22 +32,6 @@ export function PostCard({ post }: PostCardProps) {
   const [hasViewed, setHasViewed] = useState(false)
   const postRef = useRef<HTMLElement>(null)
 
-  const trackView = useCallback(async () => {
-    try {
-      // Increment view count in database
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { error } = await (supabase as any)
-        .from('posts')
-        .update({ views_count: post.views_count + 1 })
-        .eq('id', post.id)
-
-      if (error) {
-        console.error('Error tracking view:', error)
-      }
-    } catch (error) {
-      console.error('Error:', error)
-    }
-  }, [post.id, post.views_count])
 
   const fetchComments = useCallback(async () => {
     try {

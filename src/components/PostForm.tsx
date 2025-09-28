@@ -4,9 +4,6 @@ import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import { supabase } from '@/lib/supabase'
 import { Terminal, Image as ImageIcon, X } from 'lucide-react'
-import type { Database } from '@/lib/supabase'
-
-type SupabaseClient = ReturnType<typeof import('@supabase/supabase-js').createClient<Database>>
 
 interface PostFormProps {
   onPostCreated: () => void

@@ -1,13 +1,13 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
 import { PostForm } from '@/components/PostForm'
 import { PostCard } from '@/components/PostCard'
 import { TrendingFilter } from '@/components/TrendingFilter'
 import { Terminal } from '@/components/Terminal'
 import { TimeDisplay } from '@/components/TimeDisplay'
-import { Heart, MessageCircle, Eye, TrendingUp, Clock, Zap, Search, X } from 'lucide-react'
+import { Heart, TrendingUp, Clock, Search, X } from 'lucide-react'
 
 export type Post = {
   id: string
@@ -48,26 +48,7 @@ export default function Home() {
   const [loading, setLoading] = useState(true)
   const [terminalVisible, setTerminalVisible] = useState(false)
 
-  useEffect(() => {
-    fetchPosts()
-    
-    // Set up real-time subscription
-    const channel = supabase
-      .channel('posts_changes')
-      .on('postgres_changes', 
-        { event: '*', schema: 'public', table: 'posts' },
-        () => {
-          fetchPosts()
-        }
-      )
-      .subscribe()
-
-    return () => {
-      supabase.removeChannel(channel)
-    }
-  }, [trendingPeriod, searchQuery])
-
-  const fetchPosts = async () => {
+  const fetchPosts = useCallback(async () => {
     try {
       setLoading(true)
       let query = supabase
@@ -122,7 +103,26 @@ export default function Home() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [trendingPeriod, searchQuery])
+
+  useEffect(() => {
+    fetchPosts()
+    
+    // Set up real-time subscription
+    const channel = supabase
+      .channel('posts_changes')
+      .on('postgres_changes', 
+        { event: '*', schema: 'public', table: 'posts' },
+        () => {
+          fetchPosts()
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [fetchPosts])
 
   const handleNewPost = () => {
     fetchPosts()
@@ -240,7 +240,7 @@ export default function Home() {
               <div className="flex items-center space-x-2">
                 <Search className="w-4 h-4 text-green-400" />
                 <span className="text-green-400 text-sm sm:text-base">
-                  Search results for: <span className="font-bold">"{searchQuery}"</span>
+                  Search results for: <span className="font-bold">&ldquo;{searchQuery}&rdquo;</span>
                 </span>
                 <span className="text-green-400/70 text-sm sm:text-base">
                   ({posts.length} {posts.length === 1 ? 'result' : 'results'})
