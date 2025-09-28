@@ -135,8 +135,58 @@ export default function Home() {
       
       {/* Header */}
       <header className="relative z-10 border-b border-green-400/20 bg-black/80 backdrop-blur-sm">
-        <div className="max-w-6xl mx-auto px-4 py-6">
-          <div className="flex items-center justify-between">
+        <div className="max-w-6xl mx-auto px-4 py-4 md:py-6">
+          {/* Mobile Layout */}
+          <div className="flex flex-col space-y-4 md:hidden">
+            {/* Top Row - Logo and Terminal Toggle */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <Terminal className="w-6 h-6 md:w-8 md:h-8 text-green-400" />
+                <h1 className="text-lg md:text-2xl font-bold glitch">
+                  LIFE_AS_SDE.exe
+                </h1>
+              </div>
+              <button
+                onClick={() => setTerminalVisible(!terminalVisible)}
+                className="px-3 py-1.5 text-sm border border-green-400 hover:bg-green-400 hover:text-black transition-colors"
+              >
+                {terminalVisible ? 'HIDE' : 'TERMINAL'}
+              </button>
+            </div>
+            
+            {/* Search Bar - Full Width on Mobile */}
+            <div className="relative w-full">
+              <div className="flex items-center space-x-2">
+                <Search className="w-4 h-4 text-green-400/70 absolute left-3" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search posts..."
+                  className="pl-10 pr-8 py-2 w-full bg-black/50 border border-green-400/30 text-green-400 placeholder-green-400/50 focus:border-green-400 focus:outline-none transition-colors"
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery('')}
+                    className="absolute right-2 text-green-400/70 hover:text-green-400 transition-colors"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+            </div>
+            
+            {/* Trending Filter - Full Width on Mobile */}
+            <div className="w-full">
+              <TrendingFilter 
+                period={trendingPeriod} 
+                onPeriodChange={setTrendingPeriod}
+              />
+            </div>
+          </div>
+          
+          {/* Desktop Layout */}
+          <div className="hidden md:flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <Terminal className="w-8 h-8 text-green-400" />
               <h1 className="text-2xl font-bold glitch">
@@ -186,19 +236,19 @@ export default function Home() {
       {searchQuery.trim() && (
         <div className="relative z-10 border-b border-green-400/20 bg-black/60 backdrop-blur-sm">
           <div className="max-w-6xl mx-auto px-4 py-3">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
               <div className="flex items-center space-x-2">
                 <Search className="w-4 h-4 text-green-400" />
-                <span className="text-green-400">
+                <span className="text-green-400 text-sm sm:text-base">
                   Search results for: <span className="font-bold">"{searchQuery}"</span>
                 </span>
-                <span className="text-green-400/70">
+                <span className="text-green-400/70 text-sm sm:text-base">
                   ({posts.length} {posts.length === 1 ? 'result' : 'results'})
                 </span>
               </div>
               <button
                 onClick={() => setSearchQuery('')}
-                className="flex items-center space-x-1 text-green-400/70 hover:text-green-400 transition-colors"
+                className="flex items-center space-x-1 text-green-400/70 hover:text-green-400 transition-colors text-sm sm:text-base self-start sm:self-auto"
               >
                 <X className="w-4 h-4" />
                 <span>Clear search</span>
@@ -208,11 +258,11 @@ export default function Home() {
         </div>
       )}
 
-      {/* Content Layout - 20/80 split */}
-      <div className="flex min-h-screen">
-        {/* Left Sidebar - 20% */}
-        <div className="w-1/5 bg-black/20 border-r border-transparent p-4">
-          <div className="sticky top-20">
+      {/* Content Layout - Responsive */}
+      <div className="flex flex-col lg:flex-row min-h-screen">
+        {/* CLI Metrics - Mobile: Full width, Desktop: 20% sidebar */}
+        <div className="w-full lg:w-1/5 bg-black/20 border-b lg:border-b-0 lg:border-r border-transparent p-4">
+          <div className="lg:sticky lg:top-20">
             <div className="bg-black/80 backdrop-blur-sm p-4 font-mono text-sm">
               <div className="flex items-center space-x-2 mb-3">
                 <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
@@ -305,10 +355,10 @@ export default function Home() {
             </div>
           )}
 
-          {/* Posts Layout - 40/40 split */}
-          <div className="flex gap-4">
-            {/* Left Side - Trending Posts (40%) */}
-            <div className="w-1/2">
+          {/* Posts Layout - Responsive */}
+          <div className="flex flex-col xl:flex-row gap-4">
+            {/* Left Side - Trending Posts */}
+            <div className="w-full xl:w-1/2">
               <div className="mb-4">
                 <h2 className="text-lg font-bold text-green-400 flex items-center space-x-2">
                   <TrendingUp className="w-5 h-5" />
@@ -344,8 +394,8 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Right Side - Recent Posts (40%) */}
-            <div className="w-1/2">
+            {/* Right Side - Recent Posts */}
+            <div className="w-full xl:w-1/2">
               <div className="mb-4">
                 <h2 className="text-lg font-bold text-green-400 flex items-center space-x-2">
                   <Clock className="w-5 h-5" />

@@ -343,17 +343,17 @@ export function PostForm({ onPostCreated }: PostFormProps) {
     <div className="fixed bottom-0 left-0 right-0 z-[9999]">
       {/* Always visible footer header */}
       <div className="border border-green-400/20 bg-black/90 backdrop-blur-sm">
-        <div className="border-b border-green-400/20 p-4">
-          <div className="flex items-center justify-between">
+        <div className="border-b border-green-400/20 p-3 md:p-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
             <div className="flex items-center space-x-2">
-              <Terminal className="w-5 h-5 text-green-400" />
-              <h2 className="text-lg font-bold">CREATE_NEW_POST.exe</h2>
+              <Terminal className="w-4 h-4 md:w-5 md:h-5 text-green-400" />
+              <h2 className="text-base md:text-lg font-bold">CREATE_NEW_POST.exe</h2>
             </div>
             <div className="flex items-center space-x-2">
               {isActive && (
                 <button
                   onClick={() => setIsActive(false)}
-                  className="px-3 py-1 text-xs bg-red-400 text-black font-bold hover:bg-red-300 transition-colors"
+                  className="px-2 py-1 md:px-3 text-xs bg-red-400 text-black font-bold hover:bg-red-300 transition-colors"
                 >
                   CLOSE
                 </button>
@@ -361,10 +361,11 @@ export function PostForm({ onPostCreated }: PostFormProps) {
               {!isActive && (
                 <button
                   onClick={startCLI}
-                  className="px-4 py-2 bg-green-400 text-black font-bold hover:bg-green-300 transition-colors flex items-center space-x-2"
+                  className="px-3 py-1.5 md:px-4 md:py-2 bg-green-400 text-black font-bold hover:bg-green-300 transition-colors flex items-center space-x-1 md:space-x-2 text-sm md:text-base"
                 >
-                  <Terminal className="w-4 h-4" />
-                  <span>START_CLI</span>
+                  <Terminal className="w-3 h-3 md:w-4 md:h-4" />
+                  <span className="hidden sm:inline">START_CLI</span>
+                  <span className="sm:hidden">START</span>
                 </button>
               )}
             </div>
@@ -376,7 +377,7 @@ export function PostForm({ onPostCreated }: PostFormProps) {
           isActive ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0'
         }`}>
           {isActive && (
-            <div className="p-4 h-[calc(100vh-80px)] flex flex-col">
+            <div className="p-3 md:p-4 h-[calc(100vh-80px)] flex flex-col">
               <div className="flex items-center space-x-2 mb-4">
                 <div className="w-3 h-3 bg-red-500 rounded-full"></div>
                 <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
@@ -386,7 +387,7 @@ export function PostForm({ onPostCreated }: PostFormProps) {
               
               <div 
                 ref={terminalRef}
-                className="flex-1 overflow-y-auto bg-black/80 p-4 font-mono text-sm border border-green-400/20 mb-4"
+                className="flex-1 overflow-y-auto bg-black/80 p-3 md:p-4 font-mono text-xs md:text-sm border border-green-400/20 mb-4"
               >
                 {commandHistory.map((cmd, index) => (
                   <div key={index} className="mb-1">
@@ -411,14 +412,14 @@ export function PostForm({ onPostCreated }: PostFormProps) {
                 )}
                 
             <div className="flex items-center">
-              <span className="text-green-400/70">$ </span>
+              <span className="text-green-400/70 text-xs md:text-sm">$ </span>
               <input
                 ref={inputRef}
                 type="text"
                 value={currentCommand}
                 onChange={(e) => setCurrentCommand(e.target.value)}
                 onKeyPress={handleKeyPress}
-                className="bg-transparent text-green-400 outline-none flex-1 ml-1"
+                className="bg-transparent text-green-400 outline-none flex-1 ml-1 text-xs md:text-sm"
                 placeholder="Enter command..."
                 disabled={isSubmitting}
               />
@@ -428,7 +429,7 @@ export function PostForm({ onPostCreated }: PostFormProps) {
           {/* Image Upload Interface - Only show during image-upload step */}
           {currentStep === 'image-upload' && (
             <div className="mt-4 p-3 border border-green-400/30 bg-black/60">
-              <div className="flex items-center space-x-4">
+              <div className="flex flex-col sm:flex-row sm:items-center space-y-3 sm:space-y-0 sm:space-x-4">
                 <label className="cursor-pointer border border-green-400/50 hover:border-green-400 px-3 py-2 transition-colors flex items-center space-x-2 text-sm">
                   <ImageIcon className="w-4 h-4" />
                   <span>Choose Image</span>

@@ -1,0 +1,22 @@
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="32" height="32" fill="#000000"/>
+  
+  <!-- Terminal window frame -->
+  <rect x="2" y="2" width="28" height="28" fill="none" stroke="#10b981" stroke-width="1"/>
+  
+  <!-- Terminal window controls -->
+  <circle cx="6" cy="6" r="1.5" fill="#ef4444"/>
+  <circle cx="9" cy="6" r="1.5" fill="#f59e0b"/>
+  <circle cx="12" cy="6" r="1.5" fill="#10b981"/>
+  
+  <!-- Terminal prompt -->
+  <text x="4" y="20" font-family="monospace" font-size="8" fill="#10b981">$</text>
+  
+  <!-- Terminal cursor -->
+  <rect x="8" y="18" width="1" height="2" fill="#10b981"/>
+  
+  <!-- Code brackets -->
+  <text x="16" y="12" font-family="monospace" font-size="6" fill="#10b981">{</text>
+  <text x="20" y="12" font-family="monospace" font-size="6" fill="#10b981">}</text>
+</svg>
