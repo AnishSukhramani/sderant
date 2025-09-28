@@ -106,12 +106,12 @@ if (!supabaseUrl || !supabaseAnonKey) {
   console.error('NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key')
   
   // Create a mock client with proper typing
-  supabase = createClient<Database>('https://mock.supabase.co', 'mock-key') as any
+  supabase = createClient<Database>('https://mock.supabase.co', 'mock-key')
 } else {
   console.log('✅ Supabase URL:', supabaseUrl)
   console.log('✅ Supabase Key (first 20 chars):', supabaseAnonKey.substring(0, 20) + '...')
   
-  supabase = createClient<Database>(supabaseUrl, supabaseAnonKey) as any
+  supabase = createClient<Database>(supabaseUrl, supabaseAnonKey)
 }
 
 export { supabase }

@@ -5,6 +5,9 @@ import Image from 'next/image'
 import { supabase } from '@/lib/supabase'
 import { Post, Comment } from '@/app/page'
 import { getUserIdentifier, formatTimeAgo } from '@/lib/utils'
+import type { Database } from '@/lib/supabase'
+
+type SupabaseClient = ReturnType<typeof import('@supabase/supabase-js').createClient<Database>>
 import { 
   Heart, 
   MessageCircle, 
@@ -35,6 +38,7 @@ export function PostCard({ post }: PostCardProps) {
   const trackView = useCallback(async () => {
     try {
       // Increment view count in database
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { error } = await (supabase as any)
         .from('posts')
         .update({ views_count: post.views_count + 1 })
@@ -50,6 +54,7 @@ export function PostCard({ post }: PostCardProps) {
 
   const fetchComments = useCallback(async () => {
     try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data, error } = await (supabase as any)
         .from('comments')
         .select('*')
@@ -66,25 +71,6 @@ export function PostCard({ post }: PostCardProps) {
     }
   }, [post.id])
 
-  const fetchUserReactions = useCallback(async () => {
-    try {
-      const userIdentifier = getUserIdentifier()
-      // Get user's reactions
-      const { data, error } = await (supabase as any)
-        .from('reactions')
-        .select('type')
-        .eq('post_id', post.id)
-        .eq('ip_address', userIdentifier)
-
-      if (error) {
-        console.error('Error fetching reactions:', error)
-      } else {
-        setUserReactions(data?.map((r: { type: string }) => r.type) || [])
-      }
-    } catch (error) {
-      console.error('Error:', error)
-    }
-  }, [post.id])
 
   const handleReaction = async (type: 'like' | 'dislike' | 'laugh' | 'angry' | 'heart') => {
     if (isReacting) return
@@ -97,6 +83,7 @@ export function PostCard({ post }: PostCardProps) {
       
       if (isReacted) {
         // Remove reaction
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const { error } = await (supabase as any)
           .from('reactions')
           .delete()
@@ -111,6 +98,7 @@ export function PostCard({ post }: PostCardProps) {
         }
       } else {
         // Add reaction
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const { error } = await (supabase as any)
           .from('reactions')
           .insert({
@@ -140,6 +128,7 @@ export function PostCard({ post }: PostCardProps) {
     setIsSubmittingComment(true)
     
     try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { error } = await (supabase as any)
         .from('comments')
         .insert({
