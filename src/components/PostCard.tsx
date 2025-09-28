@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import Image from 'next/image'
 import { supabase } from '@/lib/supabase'
 import { Post, Comment } from '@/app/page'
@@ -10,7 +10,6 @@ import {
   MessageCircle, 
   Eye, 
   ThumbsUp, 
-  ThumbsDown, 
   Laugh, 
   Angry,
   ChevronDown,
@@ -33,48 +32,10 @@ export function PostCard({ post }: PostCardProps) {
   const [hasViewed, setHasViewed] = useState(false)
   const postRef = useRef<HTMLElement>(null)
 
-  useEffect(() => {
-    if (showComments) {
-      fetchComments()
-    }
-  }, [showComments, post.id])
-
-  useEffect(() => {
-    fetchUserReactions()
-  }, [post.id])
-
-  // View tracking with Intersection Observer
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting && !hasViewed) {
-            trackView()
-            setHasViewed(true)
-          }
-        })
-      },
-      {
-        threshold: 0.5, // Trigger when 50% of the post is visible
-        rootMargin: '0px'
-      }
-    )
-
-    if (postRef.current) {
-      observer.observe(postRef.current)
-    }
-
-    return () => {
-      if (postRef.current) {
-        observer.unobserve(postRef.current)
-      }
-    }
-  }, [hasViewed])
-
-  const trackView = async () => {
+  const trackView = useCallback(async () => {
     try {
       // Increment view count in database
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('posts')
         .update({ views_count: post.views_count + 1 })
         .eq('id', post.id)
@@ -85,11 +46,11 @@ export function PostCard({ post }: PostCardProps) {
     } catch (error) {
       console.error('Error:', error)
     }
-  }
+  }, [post.id, post.views_count])
 
-  const fetchComments = async () => {
+  const fetchComments = useCallback(async () => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('comments')
         .select('*')
         .eq('post_id', post.id)
@@ -103,13 +64,13 @@ export function PostCard({ post }: PostCardProps) {
     } catch (error) {
       console.error('Error:', error)
     }
-  }
+  }, [post.id])
 
-  const fetchUserReactions = async () => {
+  const fetchUserReactions = useCallback(async () => {
     try {
       const userIdentifier = getUserIdentifier()
       // Get user's reactions
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('reactions')
         .select('type')
         .eq('post_id', post.id)
@@ -118,12 +79,12 @@ export function PostCard({ post }: PostCardProps) {
       if (error) {
         console.error('Error fetching reactions:', error)
       } else {
-        setUserReactions(data?.map((r: any) => r.type) || [])
+        setUserReactions(data?.map((r: { type: string }) => r.type) || [])
       }
     } catch (error) {
       console.error('Error:', error)
     }
-  }
+  }, [post.id])
 
   const handleReaction = async (type: 'like' | 'dislike' | 'laugh' | 'angry' | 'heart') => {
     if (isReacting) return
@@ -136,7 +97,7 @@ export function PostCard({ post }: PostCardProps) {
       
       if (isReacted) {
         // Remove reaction
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from('reactions')
           .delete()
           .eq('post_id', post.id)
@@ -150,7 +111,7 @@ export function PostCard({ post }: PostCardProps) {
         }
       } else {
         // Add reaction
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from('reactions')
           .insert({
             post_id: post.id,
@@ -179,7 +140,7 @@ export function PostCard({ post }: PostCardProps) {
     setIsSubmittingComment(true)
     
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('comments')
         .insert({
           post_id: post.id,

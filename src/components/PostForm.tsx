@@ -240,7 +240,7 @@ export function PostForm({ onPostCreated }: PostFormProps) {
       const fileName = `${Math.random()}.${fileExt}`
       const filePath = `posts/${fileName}`
 
-      const { error: uploadError } = await supabase.storage
+      const { error: uploadError } = await (supabase as any).storage
         .from('post-images')
         .upload(filePath, file)
 
@@ -249,7 +249,7 @@ export function PostForm({ onPostCreated }: PostFormProps) {
         return null
       }
 
-      const { data } = supabase.storage
+      const { data } = (supabase as any).storage
         .from('post-images')
         .getPublicUrl(filePath)
 
@@ -301,7 +301,7 @@ export function PostForm({ onPostCreated }: PostFormProps) {
         imageUrl = await uploadImage(image)
       }
 
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('posts')
         .insert({
           name: name.trim() || null,
