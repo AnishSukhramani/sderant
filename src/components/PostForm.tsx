@@ -1,8 +1,9 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import Image from 'next/image'
 import { supabase } from '@/lib/supabase'
-import { Terminal, Image as ImageIcon, Send, X } from 'lucide-react'
+import { Terminal, Image as ImageIcon, X } from 'lucide-react'
 
 interface PostFormProps {
   onPostCreated: () => void
@@ -443,9 +444,11 @@ export function PostForm({ onPostCreated }: PostFormProps) {
                 
                 {imagePreview && (
                   <div className="flex items-center space-x-2">
-                    <img
+                    <Image
                       src={imagePreview}
                       alt="Preview"
+                      width={48}
+                      height={48}
                       className="w-12 h-12 object-cover border border-green-400/50"
                     />
                     <button
@@ -459,7 +462,7 @@ export function PostForm({ onPostCreated }: PostFormProps) {
                 )}
               </div>
               <div className="mt-2 text-xs text-green-400/70">
-                <p>Select an image file, then type "done" to continue or "skip" to proceed without image.</p>
+                <p>Select an image file, then type &quot;done&quot; to continue or &quot;skip&quot; to proceed without image.</p>
               </div>
             </div>
           )}

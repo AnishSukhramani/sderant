@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import Image from 'next/image'
 import { supabase } from '@/lib/supabase'
 import { Post, Comment } from '@/app/page'
 import { getUserIdentifier, formatTimeAgo } from '@/lib/utils'
@@ -262,9 +263,11 @@ export function PostCard({ post }: PostCardProps) {
         
         {post.image_url && (
           <div className="mb-4">
-            <img
+            <Image
               src={post.image_url}
               alt="Post image"
+              width={800}
+              height={600}
               className="max-w-full h-auto rounded border border-green-400/20"
             />
           </div>
