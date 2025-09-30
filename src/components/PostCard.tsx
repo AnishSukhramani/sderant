@@ -258,7 +258,12 @@ export function PostCard({ post }: PostCardProps) {
 
         {/* Comments Toggle */}
         <button
-          onClick={() => setShowComments(!showComments)}
+          onClick={() => {
+            if (!showComments) {
+              fetchComments()
+            }
+            setShowComments(!showComments)
+          }}
           className="flex items-center space-x-1 text-green-400/70 hover:text-green-400 transition-colors text-sm"
         >
           <MessageCircle className="w-3 h-3" />
