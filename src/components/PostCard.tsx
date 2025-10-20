@@ -3,7 +3,7 @@
 import { useState, useRef, useCallback } from 'react'
 import Image from 'next/image'
 import { supabase } from '@/lib/supabase'
-import { Post, Comment } from '@/app/page'
+import type { Post, Comment } from '@/types'
 import { getUserIdentifier, formatTimeAgo } from '@/lib/utils'
 import { 
   Heart, 
@@ -29,7 +29,7 @@ export function PostCard({ post }: PostCardProps) {
   const [isSubmittingComment, setIsSubmittingComment] = useState(false)
   const [userReactions, setUserReactions] = useState<string[]>([])
   const [isReacting, setIsReacting] = useState(false)
-  const [hasViewed, setHasViewed] = useState(false)
+  const [hasViewed] = useState(false)
   const postRef = useRef<HTMLElement>(null)
 
 

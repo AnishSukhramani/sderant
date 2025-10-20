@@ -1,447 +1,490 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
-import { supabase } from '@/lib/supabase'
-import { PostForm } from '@/components/PostForm'
-import { PostCard } from '@/components/PostCard'
-import { TrendingFilter } from '@/components/TrendingFilter'
-import { Terminal } from '@/components/Terminal'
-import { TimeDisplay } from '@/components/TimeDisplay'
-import { Heart, TrendingUp, Clock, Search, X } from 'lucide-react'
+import { motion, useScroll, useTransform } from 'framer-motion'
+import { Terminal, Code, Users, Rocket, Heart, MessageSquare, Sparkles, ArrowRight, Github, Mail, DollarSign, Globe } from 'lucide-react'
+import Link from 'next/link'
+import { useRef, useEffect, useState } from 'react'
+import { MagneticButton } from '@/components/MagneticButton'
+import { WorldMapDemo } from '@/components/WorldMapDemo'
 
-export type Post = {
-  id: string
-  name: string | null
-  title: string
-  content: string
-  image_url: string | null
-  created_at: string
-  updated_at: string
-  likes_count: number
-  comments_count: number
-  views_count: number
-}
+export default function LandingPage() {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start start", "end end"]
+  })
 
-export type Comment = {
-  id: string
-  post_id: string
-  name: string | null
-  content: string
-  created_at: string
-  updated_at: string
-}
-
-export type Reaction = {
-  id: string
-  post_id: string
-  type: 'like' | 'dislike' | 'laugh' | 'angry' | 'heart'
-  ip_address: string
-  created_at: string
-}
-
-type TrendingPeriod = 'hour' | 'day' | 'all'
-
-export default function Home() {
-  const [posts, setPosts] = useState<Post[]>([])
-  const [trendingPeriod, setTrendingPeriod] = useState<TrendingPeriod>('all')
-  const [searchQuery, setSearchQuery] = useState('')
-  const [loading, setLoading] = useState(true)
-  const [terminalVisible, setTerminalVisible] = useState(false)
-
-  const fetchPosts = useCallback(async () => {
-    try {
-      setLoading(true)
-      let query = supabase
-        .from('posts')
-        .select('*')
-
-      // Apply search filter if search query exists
-      if (searchQuery.trim()) {
-        query = query.or(`title.ilike.%${searchQuery}%,name.ilike.%${searchQuery}%,content.ilike.%${searchQuery}%`)
-      }
-
-      // Apply time filter
-      if (trendingPeriod === 'hour') {
-        const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString()
-        query = query.gte('created_at', oneHourAgo)
-      } else if (trendingPeriod === 'day') {
-        const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
-        query = query.gte('created_at', oneDayAgo)
-      }
-
-      // Order by created_at for search results, or by trending score for normal view
-      if (searchQuery.trim()) {
-        query = query.order('created_at', { ascending: false })
-      } else {
-        query = query.order('created_at', { ascending: false })
-      }
-
-      const { data, error } = await query
-
-      if (error) {
-        console.error('Error fetching posts:', error)
-        console.error('Error details:', JSON.stringify(error, null, 2))
-        
-        // Check if it's a configuration error
-        if (error.message && error.message.includes('Supabase not configured')) {
-          setPosts([])
-          return
-        }
-      } else {
-        // Sort by trending score (likes + comments + views) only if not searching
-        const sortedPosts = searchQuery.trim() 
-          ? data || []
-          : data?.sort((a: Post, b: Post) => {
-              const scoreA = a.likes_count + a.comments_count + a.views_count
-              const scoreB = b.likes_count + b.comments_count + b.views_count
-              return scoreB - scoreA
-            }) || []
-        setPosts(sortedPosts)
-      }
-    } catch (error) {
-      console.error('Error:', error)
-    } finally {
-      setLoading(false)
-    }
-  }, [trendingPeriod, searchQuery])
-
-  useEffect(() => {
-    fetchPosts()
-    
-    // Set up real-time subscription
-    const channel = supabase
-      .channel('posts_changes')
-      .on('postgres_changes', 
-        { event: '*', schema: 'public', table: 'posts' },
-        () => {
-          fetchPosts()
-        }
-      )
-      .subscribe()
-
-    return () => {
-      supabase.removeChannel(channel)
-    }
-  }, [fetchPosts])
-
-  const handleNewPost = () => {
-    fetchPosts()
-  }
+  const heroOpacity = useTransform(scrollYProgress, [0, 0.2], [1, 0])
+  const heroScale = useTransform(scrollYProgress, [0, 0.2], [1, 0.8])
 
   return (
-    <div className="min-h-screen bg-black text-green-400 font-mono">
+    <div ref={containerRef} className="min-h-screen text-green-400 font-mono overflow-x-hidden relative">
+      {/* World Map Background */}
+      <WorldMapDemo />
+      
       {/* Matrix background */}
       <div className="fixed inset-0 matrix-bg pointer-events-none" />
-      
-      {/* Header */}
-      <header className="relative z-10 border-b border-green-400/20 bg-black/80 backdrop-blur-sm">
-        <div className="max-w-6xl mx-auto px-4 py-4 md:py-6">
-          {/* Mobile Layout */}
-          <div className="flex flex-col space-y-4 md:hidden">
-            {/* Top Row - Logo and Terminal Toggle */}
+      <MatrixRain />
+
+      {/* Navigation */}
+      <motion.nav 
+        initial={{ y: -100 }}
+        animate={{ y: 0 }}
+        className="fixed top-0 left-0 right-0 z-50 border-b border-green-400/20 bg-black/80 backdrop-blur-sm"
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <Terminal className="w-6 h-6 md:w-8 md:h-8 text-green-400" />
-                <h1 className="text-lg md:text-2xl font-bold glitch">
-                  LIFE_AS_SDE.exe
-                </h1>
-              </div>
-              <button
-                onClick={() => setTerminalVisible(!terminalVisible)}
-                className="px-3 py-1.5 text-sm border border-green-400 hover:bg-green-400 hover:text-black transition-colors"
+            <div className="flex items-center space-x-2 sm:space-x-3">
+              <Terminal className="w-6 h-6 sm:w-8 sm:h-8 text-green-400" />
+              <h1 className="text-lg sm:text-xl md:text-2xl font-bold glitch">SDERANT.exe</h1>
+            </div>
+            <Link href="/app">
+              <MagneticButton
+                className="px-4 sm:px-6 py-2 border border-green-400 text-green-400 hover:bg-green-400 hover:text-black transition-all duration-300 text-sm sm:text-base"
               >
-                {terminalVisible ? 'HIDE' : 'TERMINAL'}
-              </button>
-            </div>
-            
-            {/* Search Bar - Full Width on Mobile */}
-            <div className="relative w-full">
-              <div className="flex items-center space-x-2">
-                <Search className="w-4 h-4 text-green-400/70 absolute left-3" />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search posts..."
-                  className="pl-10 pr-8 py-2 w-full bg-black/50 border border-green-400/30 text-green-400 placeholder-green-400/50 focus:border-green-400 focus:outline-none transition-colors"
-                />
-                {searchQuery && (
-                  <button
-                    onClick={() => setSearchQuery('')}
-                    className="absolute right-2 text-green-400/70 hover:text-green-400 transition-colors"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                )}
+                LAUNCH_APP
+              </MagneticButton>
+            </Link>
               </div>
             </div>
+      </motion.nav>
+
+      {/* Hero Section */}
+      <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20 z-10">
+        
+        <motion.div 
+          style={{ opacity: heroOpacity, scale: heroScale }}
+          className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center"
+        >
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+          >
+            <motion.h2 
+              className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-6 glitch"
+              animate={{ 
+                textShadow: [
+                  "0.05em 0 0 #00ff41, -0.05em -0.025em 0 #ff6b35",
+                  "0.025em 0.05em 0 #00ff41, 0.05em 0 0 #ff6b35",
+                  "-0.05em -0.025em 0 #00ff41, 0.025em 0.025em 0 #ff6b35"
+                ]
+              }}
+              transition={{ duration: 2, repeat: Infinity }}
+            >
+              WHERE DEVS RANT<br />
+              <span className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl text-green-400/80">
+                {'// Anonymous. Real. Raw.'}
+              </span>
+            </motion.h2>
             
-            {/* Trending Filter - Full Width on Mobile */}
-            <div className="w-full">
-              <TrendingFilter 
-                period={trendingPeriod} 
-                onPeriodChange={setTrendingPeriod}
-              />
-            </div>
-          </div>
-          
-          {/* Desktop Layout */}
-          <div className="hidden md:flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <Terminal className="w-8 h-8 text-green-400" />
-              <h1 className="text-2xl font-bold glitch">
-                LIFE_AS_SDE.exe
-              </h1>
-            </div>
-            
-            <div className="flex items-center space-x-4">
-              {/* Search Bar */}
-              <div className="relative">
-                <div className="flex items-center space-x-2">
-                  <Search className="w-4 h-4 text-green-400/70 absolute left-3" />
-                  <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search posts..."
-                    className="pl-10 pr-8 py-2 bg-black/50 border border-green-400/30 text-green-400 placeholder-green-400/50 focus:border-green-400 focus:outline-none transition-colors w-64"
-                  />
-                  {searchQuery && (
-                    <button
-                      onClick={() => setSearchQuery('')}
-                      className="absolute right-2 text-green-400/70 hover:text-green-400 transition-colors"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
-                  )}
-                </div>
-              </div>
+            <motion.p 
+              className="text-lg sm:text-xl md:text-2xl text-green-400/70 mb-8 max-w-3xl mx-auto px-4"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.8, delay: 0.5 }}
+            >
+              The global terminal for software engineers. Share your thoughts, 
+              memes, and experiences with developers worldwide. No accounts, 
+              no tracking, just pure chaos.
+            </motion.p>
+
+            <motion.div 
+              className="flex flex-col sm:flex-row gap-4 justify-center items-center"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.8 }}
+            >
+              <Link href="/app">
+                <MagneticButton
+                  className="px-8 py-4 bg-green-400 text-black font-bold text-lg flex items-center space-x-2 group hover:shadow-[0_0_20px_rgba(0,255,65,0.5)]"
+                  strength={0.4}
+                >
+                  <span>START_RANTING</span>
+                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                </MagneticButton>
+              </Link>
               
-              <TrendingFilter 
-                period={trendingPeriod} 
-                onPeriodChange={setTrendingPeriod}
-              />
-              <button
-                onClick={() => setTerminalVisible(!terminalVisible)}
-                className="px-4 py-2 border border-green-400 hover:bg-green-400 hover:text-black transition-colors"
+              <MagneticButton
+                className="px-8 py-4 border-2 border-green-400 text-green-400 font-bold text-lg hover:bg-green-400/10 transition-colors"
+                onClick={() => {
+                  document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })
+                }}
+                strength={0.4}
               >
-                {terminalVisible ? 'HIDE_TERMINAL' : 'SHOW_TERMINAL'}
-              </button>
-            </div>
+                LEARN_MORE
+              </MagneticButton>
+            </motion.div>
+          </motion.div>
+
+          {/* Terminal Stats */}
+          <motion.div 
+            className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 1 }}
+          >
+            {[
+              { label: 'ACTIVE_DEVS', value: '10K+', icon: Users },
+              { label: 'RANTS_POSTED', value: '50K+', icon: MessageSquare },
+              { label: 'COUNTRIES', value: '120+', icon: Globe },
+              { label: 'UPTIME', value: '99.9%', icon: Rocket }
+            ].map((stat, index) => (
+              <motion.div
+                key={stat.label}
+                whileHover={{ scale: 1.05, borderColor: '#00ff41' }}
+                className="border border-green-400/30 bg-black/50 backdrop-blur-sm p-4 sm:p-6"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 1.2 + index * 0.1 }}
+              >
+                <stat.icon className="w-6 h-6 sm:w-8 sm:h-8 text-green-400 mb-2 mx-auto" />
+                <div className="text-xl sm:text-2xl md:text-3xl font-bold text-green-400">{stat.value}</div>
+                <div className="text-xs sm:text-sm text-green-400/70">{stat.label}</div>
+              </motion.div>
+            ))}
+          </motion.div>
+        </motion.div>
+
+        {/* Scroll Indicator */}
+        <motion.div
+          className="absolute bottom-8 left-1/2 transform -translate-x-1/2"
+          animate={{ y: [0, 10, 0] }}
+          transition={{ duration: 2, repeat: Infinity }}
+        >
+          <div className="w-6 h-10 border-2 border-green-400 rounded-full flex justify-center pt-2">
+            <motion.div 
+              className="w-1 h-2 bg-green-400 rounded-full"
+              animate={{ y: [0, 16, 0] }}
+              transition={{ duration: 2, repeat: Infinity }}
+            />
+          </div>
+        </motion.div>
+      </section>
+
+      {/* Features Section */}
+      <section id="features" className="relative py-20 sm:py-32 px-4 sm:px-6 lg:px-8 z-10">
+        <div className="max-w-7xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+            className="text-center mb-16"
+          >
+            <h3 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 glitch">
+              FEATURES.exe
+            </h3>
+            <p className="text-lg sm:text-xl text-green-400/70">
+              Built for developers, by developers
+            </p>
+          </motion.div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+            {[
+              {
+                icon: Terminal,
+                title: 'ANONYMOUS_POSTING',
+                description: 'No sign-ups, no logins. Just open your terminal and start ranting. Your privacy is our priority.',
+                color: 'text-green-400'
+              },
+              {
+                icon: Rocket,
+                title: 'REAL_TIME_UPDATES',
+                description: 'See posts appear instantly. Experience the pulse of the global dev community in real-time.',
+                color: 'text-blue-400'
+              },
+              {
+                icon: Heart,
+                title: 'REACT_&_ENGAGE',
+                description: 'Like, comment, and share your thoughts. Build connections without compromising anonymity.',
+                color: 'text-red-400'
+              },
+              {
+                icon: Code,
+                title: 'CODE_SYNTAX_SUPPORT',
+                description: 'Share code snippets with beautiful syntax highlighting. Make your rants technical.',
+                color: 'text-yellow-400'
+              },
+              {
+                icon: Globe,
+                title: 'GLOBAL_COMMUNITY',
+                description: 'Connect with developers from every corner of the world. Different time zones, same frustrations.',
+                color: 'text-cyan-400'
+              },
+              {
+                icon: Sparkles,
+                title: 'TRENDING_ALGORITHM',
+                description: 'Discover what\'s hot in the dev world. Our algorithm surfaces the best rants and memes.',
+                color: 'text-purple-400'
+              }
+            ].map((feature, index) => (
+              <motion.div
+                key={feature.title}
+                initial={{ opacity: 0, y: 50 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: index * 0.1 }}
+                whileHover={{ 
+                  scale: 1.05, 
+                  borderColor: '#00ff41',
+                  boxShadow: '0 0 20px rgba(0, 255, 65, 0.3)'
+                }}
+                className="border border-green-400/30 bg-black/50 backdrop-blur-sm p-6 sm:p-8 group"
+              >
+                <feature.icon className={`w-10 h-10 sm:w-12 sm:h-12 ${feature.color} mb-4 group-hover:scale-110 transition-transform`} />
+                <h4 className="text-xl sm:text-2xl font-bold mb-3 text-green-400">{feature.title}</h4>
+                <p className="text-green-400/70 text-sm sm:text-base">{feature.description}</p>
+              </motion.div>
+            ))}
           </div>
         </div>
-      </header>
+      </section>
 
-      {/* Search Results Indicator */}
-      {searchQuery.trim() && (
-        <div className="relative z-10 border-b border-green-400/20 bg-black/60 backdrop-blur-sm">
-          <div className="max-w-6xl mx-auto px-4 py-3">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
-              <div className="flex items-center space-x-2">
-                <Search className="w-4 h-4 text-green-400" />
-                <span className="text-green-400 text-sm sm:text-base">
-                  Search results for: <span className="font-bold">&ldquo;{searchQuery}&rdquo;</span>
-                </span>
-                <span className="text-green-400/70 text-sm sm:text-base">
-                  ({posts.length} {posts.length === 1 ? 'result' : 'results'})
-                </span>
-              </div>
-              <button
-                onClick={() => setSearchQuery('')}
-                className="flex items-center space-x-1 text-green-400/70 hover:text-green-400 transition-colors text-sm sm:text-base self-start sm:self-auto"
+      {/* How It Works */}
+      <section className="relative py-20 sm:py-32 px-4 sm:px-6 lg:px-8 bg-black/50 z-10">
+        <div className="max-w-7xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+            className="text-center mb-16"
+          >
+            <h3 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 glitch">
+              HOW_IT_WORKS.sh
+            </h3>
+            <p className="text-lg sm:text-xl text-green-400/70">
+              Three steps to join the chaos
+            </p>
+          </motion.div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {[
+              {
+                step: '01',
+                title: 'OPEN_TERMINAL',
+                description: 'Navigate to SDERANT. No account needed, no email required. Just click and start.',
+                command: '$ cd /sderant && ./launch'
+              },
+              {
+                step: '02',
+                title: 'WRITE_YOUR_RANT',
+                description: 'Share your thoughts, code, memes, or frustrations. Be authentic. Be anonymous.',
+                command: '$ echo "My thoughts" > rant.txt'
+              },
+              {
+                step: '03',
+                title: 'WATCH_IT_SPREAD',
+                description: 'Your rant goes live instantly. Watch devs worldwide react and engage with your content.',
+                command: '$ git push origin master'
+              }
+            ].map((step, index) => (
+              <motion.div
+                key={step.step}
+                initial={{ opacity: 0, x: -50 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: index * 0.2 }}
+                className="relative"
               >
-                <X className="w-4 h-4" />
-                <span>Clear search</span>
-              </button>
-            </div>
+                <div className="border border-green-400/30 bg-black/80 backdrop-blur-sm p-6 sm:p-8">
+                  <div className="text-5xl sm:text-6xl font-bold text-green-400/20 mb-4">{step.step}</div>
+                  <h4 className="text-xl sm:text-2xl font-bold mb-3 text-green-400">{step.title}</h4>
+                  <p className="text-green-400/70 mb-4 text-sm sm:text-base">{step.description}</p>
+                  <div className="bg-black/50 border border-green-400/20 p-3 sm:p-4 font-mono text-xs sm:text-sm">
+                    <span className="text-green-400/50">$</span>{' '}
+                    <span className="text-green-400">{step.command}</span>
+                </div>
+                </div>
+                {index < 2 && (
+                  <div className="hidden md:block absolute top-1/2 -right-4 transform -translate-y-1/2">
+                    <ArrowRight className="w-8 h-8 text-green-400/30" />
+                </div>
+                )}
+              </motion.div>
+            ))}
+                </div>
+              </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="relative py-20 sm:py-32 px-4 sm:px-6 lg:px-8 z-10">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8 }}
+          className="max-w-4xl mx-auto text-center border-2 border-green-400 bg-black/80 backdrop-blur-sm p-8 sm:p-12 md:p-16"
+        >
+          <h3 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 glitch">
+            READY_TO_RANT?
+          </h3>
+          <p className="text-lg sm:text-xl text-green-400/70 mb-8">
+            Join thousands of developers sharing their unfiltered thoughts
+          </p>
+          <Link href="/app">
+            <MagneticButton
+              className="px-8 sm:px-12 py-4 sm:py-5 bg-green-400 text-black font-bold text-lg sm:text-xl hover:shadow-[0_0_30px_rgba(0,255,65,0.6)]"
+              strength={0.5}
+            >
+              INITIALIZE_RANT.exe
+            </MagneticButton>
+          </Link>
+        </motion.div>
+      </section>
+
+      {/* Bottom Sections */}
+      <section className="relative py-20 sm:py-32 px-4 sm:px-6 lg:px-8 bg-black/50 z-10">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid md:grid-cols-3 gap-6 sm:gap-8">
+            {/* Contact Developer */}
+            <motion.div
+              initial={{ opacity: 0, y: 50 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+              whileHover={{ 
+                scale: 1.05,
+                borderColor: '#00ff41'
+              }}
+              className="border border-green-400/30 bg-black/80 backdrop-blur-sm p-6 sm:p-8"
+            >
+              <Mail className="w-10 h-10 sm:w-12 sm:h-12 text-green-400 mb-4" />
+              <h4 className="text-xl sm:text-2xl font-bold mb-3 text-green-400">CONTACT_DEV</h4>
+              <p className="text-green-400/70 mb-6 text-sm sm:text-base">
+                Have questions? Found a bug? Want to suggest a feature? Reach out to the developer.
+              </p>
+              <motion.a
+                href="mailto:dev@sderant.com"
+                whileHover={{ x: 5 }}
+                className="text-green-400 flex items-center space-x-2 group text-sm sm:text-base"
+              >
+                <span>dev@sderant.com</span>
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </motion.a>
+            </motion.div>
+
+            {/* Become a Contributor */}
+            <motion.div
+              initial={{ opacity: 0, y: 50 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.1 }}
+              whileHover={{ 
+                scale: 1.05,
+                borderColor: '#00ff41'
+              }}
+              className="border border-green-400/30 bg-black/80 backdrop-blur-sm p-6 sm:p-8"
+            >
+              <Code className="w-10 h-10 sm:w-12 sm:h-12 text-blue-400 mb-4" />
+              <h4 className="text-xl sm:text-2xl font-bold mb-3 text-green-400">MAKE_IT_BETTER</h4>
+              <p className="text-green-400/70 mb-6 text-sm sm:text-base">
+                Open source and proud. Contribute code, report issues, or suggest improvements. Make SDERANT better for everyone.
+              </p>
+              <motion.a
+                href="https://github.com/yourusername/sderant"
+                target="_blank"
+                rel="noopener noreferrer"
+                whileHover={{ x: 5 }}
+                className="text-blue-400 flex items-center space-x-2 group text-sm sm:text-base"
+              >
+                <Github className="w-5 h-5" />
+                <span>Contribute on GitHub</span>
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </motion.a>
+            </motion.div>
+
+            {/* Donate/Invest */}
+            <motion.div
+              initial={{ opacity: 0, y: 50 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              whileHover={{ 
+                scale: 1.05,
+                borderColor: '#00ff41'
+              }}
+              className="border border-green-400/30 bg-black/80 backdrop-blur-sm p-6 sm:p-8"
+            >
+              <DollarSign className="w-10 h-10 sm:w-12 sm:h-12 text-yellow-400 mb-4" />
+              <h4 className="text-xl sm:text-2xl font-bold mb-3 text-green-400">SUPPORT_US</h4>
+              <p className="text-green-400/70 mb-6 text-sm sm:text-base">
+                Help us keep the servers running and the platform free. Every contribution helps us build better features.
+              </p>
+              <motion.a
+                href="https://donate.sderant.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                whileHover={{ x: 5 }}
+                className="text-yellow-400 flex items-center space-x-2 group text-sm sm:text-base"
+              >
+                <Heart className="w-5 h-5" />
+                <span>Donate / Invest</span>
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </motion.a>
+            </motion.div>
           </div>
         </div>
-      )}
-
-      {/* Content Layout - Responsive */}
-      <div className="flex flex-col lg:flex-row min-h-screen">
-        {/* CLI Metrics - Mobile: Full width, Desktop: 20% sidebar */}
-        <div className="w-full lg:w-1/5 bg-black/20 border-b lg:border-b-0 lg:border-r border-transparent p-4">
-          <div className="lg:sticky lg:top-20">
-            <div className="bg-black/80 backdrop-blur-sm p-4 font-mono text-sm">
-              <div className="flex items-center space-x-2 mb-3">
-                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                <span className="text-green-400 font-bold">SYSTEM_METRICS.exe</span>
-              </div>
-              
-              <div className="space-y-2 text-green-400/80">
-                <div className="flex justify-between">
-                  <span className="text-green-400/60">ACTIVE_POSTS:</span>
-                  <span className="text-green-400 font-bold">{posts.length}</span>
-                </div>
-                
-                <div className="flex justify-between">
-                  <span className="text-green-400/60">TOTAL_REACTIONS:</span>
-                  <span className="text-red-400 font-bold">
-                    {posts.reduce((sum, post) => sum + post.likes_count, 0)}
-                  </span>
-                </div>
-                
-                <div className="flex justify-between">
-                  <span className="text-green-400/60">COMMENTS:</span>
-                  <span className="text-blue-400 font-bold">
-                    {posts.reduce((sum, post) => sum + post.comments_count, 0)}
-                  </span>
-                </div>
-                
-                <div className="flex justify-between">
-                  <span className="text-green-400/60">STATUS:</span>
-                  <span className="text-green-400 font-bold">ONLINE</span>
-                </div>
-                
-                <div className="flex justify-between">
-                  <span className="text-green-400/60">UPTIME:</span>
-                  <span className="text-green-400 font-bold">24/7</span>
-                </div>
-              </div>
-              
-              <div className="mt-3 pt-2 border-t border-green-400/20">
-              <div className="text-xs text-green-400/50">
-                <div className="flex justify-between">
-                  <span>LAST_UPDATE:</span>
-                  <TimeDisplay />
-                </div>
-                <div className="flex justify-between">
-                  <span>NODE_ID:</span>
-                  <span>life-as-sde-001</span>
-                </div>
-              </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Main Content - 80% */}
-        <main className="flex-1 relative z-10 px-4 py-8 pb-32">
-          {/* Terminal */}
-          {terminalVisible && (
-            <div className="mb-8 border border-green-400 bg-black/90 p-4">
-              <div className="flex items-center space-x-2 mb-4">
-                <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-                <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                <span className="text-sm text-green-400/70 ml-4">terminal@life-as-sde:~$</span>
-              </div>
-              <div className="text-sm">
-                <p className="text-green-400/70">Welcome to the developer bulletin board!</p>
-                <p className="text-green-400/70">Share your thoughts, memes, and experiences.</p>
-                <p className="text-green-400/70">No accounts needed - just post anonymously.</p>
-              </div>
-            </div>
-          )}
-
-          {/* Configuration Status */}
-          {!process.env.NEXT_PUBLIC_SUPABASE_URL && (
-            <div className="border border-red-400/50 bg-red-900/20 p-4 mb-8">
-              <div className="flex items-center space-x-2 mb-2">
-                <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                <h3 className="text-lg font-bold text-red-400">CONFIGURATION REQUIRED</h3>
-              </div>
-              <div className="text-sm text-red-300/80">
-                <p className="mb-2">❌ Supabase is not configured. Please set up your environment variables:</p>
-                <div className="bg-black/50 p-3 border border-red-400/30 font-mono text-xs">
-                  <p>1. Create a <code className="text-green-400">.env.local</code> file in your project root</p>
-                  <p>2. Add the following variables:</p>
-                  <p className="ml-4 text-green-400">NEXT_PUBLIC_SUPABASE_URL=your_supabase_url</p>
-                  <p className="ml-4 text-green-400">NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key</p>
-                  <p>3. Restart your development server</p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Posts Layout - Responsive */}
-          <div className="flex flex-col xl:flex-row gap-4">
-            {/* Left Side - Trending Posts */}
-            <div className="w-full xl:w-1/2">
-              <div className="mb-4">
-                <h2 className="text-lg font-bold text-green-400 flex items-center space-x-2">
-                  <TrendingUp className="w-5 h-5" />
-                  <span>TRENDING_POSTS.exe</span>
-                </h2>
-                <p className="text-sm text-green-400/70">All-time trending content</p>
-              </div>
-              
-              <div className="space-y-4 max-h-[calc(100vh-200px)] overflow-y-auto scrollbar-hide">
-                {loading ? (
-                  <div className="text-center py-8">
-                    <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-green-400"></div>
-                    <p className="mt-2 text-green-400/70 text-sm">Loading trending...</p>
-                  </div>
-                ) : posts.length === 0 ? (
-                  <div className="text-center py-8 border border-green-400/20 bg-black/50">
-                    <Terminal className="w-12 h-12 mx-auto mb-2 text-green-400/50" />
-                    <h3 className="text-lg font-bold mb-1">No trending posts</h3>
-                    <p className="text-green-400/70 text-sm">Be the first to create content!</p>
-                  </div>
-                ) : (
-                  posts
-                    .sort((a, b) => {
-                      const scoreA = a.likes_count + a.comments_count + a.views_count
-                      const scoreB = b.likes_count + b.comments_count + b.views_count
-                      return scoreB - scoreA
-                    })
-                    .slice(0, 10)
-                    .map((post) => (
-                      <PostCard key={post.id} post={post} />
-                    ))
-                )}
-              </div>
-            </div>
-
-            {/* Right Side - Recent Posts */}
-            <div className="w-full xl:w-1/2">
-              <div className="mb-4">
-                <h2 className="text-lg font-bold text-green-400 flex items-center space-x-2">
-                  <Clock className="w-5 h-5" />
-                  <span>RECENT_POSTS.exe</span>
-                </h2>
-                <p className="text-sm text-green-400/70">Latest community activity</p>
-              </div>
-              
-              <div className="space-y-4 max-h-[calc(100vh-200px)] overflow-y-auto scrollbar-hide">
-                {loading ? (
-                  <div className="text-center py-8">
-                    <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-green-400"></div>
-                    <p className="mt-2 text-green-400/70 text-sm">Loading recent...</p>
-                  </div>
-                ) : posts.length === 0 ? (
-                  <div className="text-center py-8 border border-green-400/20 bg-black/50">
-                    <Terminal className="w-12 h-12 mx-auto mb-2 text-green-400/50" />
-                    <h3 className="text-lg font-bold mb-1">No recent posts</h3>
-                    <p className="text-green-400/70 text-sm">Start the conversation!</p>
-                  </div>
-                ) : (
-                  posts
-                    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-                    .slice(0, 10)
-                    .map((post) => (
-                      <PostCard key={`recent-${post.id}`} post={post} />
-                    ))
-                )}
-              </div>
-            </div>
-          </div>
-        </main>
-      </div>
+      </section>
 
       {/* Footer */}
-      <footer className="relative z-10 border-t border-green-400/20 bg-black/80 backdrop-blur-sm mt-16 mb-20">
-        <div className="max-w-6xl mx-auto px-4 py-6">
-          <div className="flex items-center justify-between text-sm text-green-400/70">
-            <p>Built with Next.js + Supabase | Anonymous Tech Discussions</p>
-            <p>No cookies, no tracking, just pure developer chaos</p>
+      <footer className="relative border-t border-green-400/20 bg-black/80 backdrop-blur-sm py-8 px-4 sm:px-6 lg:px-8 z-10">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex flex-col md:flex-row items-center justify-between space-y-4 md:space-y-0">
+            <div className="flex items-center space-x-2">
+              <Terminal className="w-6 h-6 text-green-400" />
+              <span className="text-green-400/70 text-sm sm:text-base">
+                © 2025 SDERANT. Built with ❤️ by developers, for developers.
+              </span>
+            </div>
+            <div className="flex items-center space-x-6 text-sm sm:text-base">
+              <a href="#" className="text-green-400/70 hover:text-green-400 transition-colors">Privacy</a>
+              <a href="#" className="text-green-400/70 hover:text-green-400 transition-colors">Terms</a>
+              <a href="#" className="text-green-400/70 hover:text-green-400 transition-colors">Status</a>
+            </div>
+          </div>
+          <div className="mt-4 text-center text-green-400/50 text-xs sm:text-sm">
+            <p>No cookies, no tracking, no bullshit. Just pure developer chaos.</p>
           </div>
         </div>
       </footer>
+    </div>
+  )
+}
 
-      {/* Post Form - Fixed at bottom with highest z-index */}
-      <PostForm onPostCreated={handleNewPost} />
+
+// Matrix Rain Effect
+function MatrixRain() {
+  const [columns, setColumns] = useState<number[]>([])
+
+  useEffect(() => {
+    const columnCount = Math.floor(window.innerWidth / 20)
+    setColumns(Array.from({ length: columnCount }, (_, i) => i))
+  }, [])
+
+  return (
+    <div className="fixed inset-0 pointer-events-none overflow-hidden opacity-20">
+      {columns.map((col) => (
+        <motion.div
+          key={col}
+          className="absolute top-0 text-green-400 text-xs font-mono"
+          style={{ left: `${col * 20}px` }}
+          initial={{ y: -100 }}
+          animate={{ y: '100vh' }}
+          transition={{
+            duration: Math.random() * 5 + 5,
+            repeat: Infinity,
+            repeatType: 'loop',
+            delay: Math.random() * 5,
+            ease: 'linear'
+          }}
+        >
+          {Array.from({ length: 20 }, () => 
+            String.fromCharCode(33 + Math.random() * 94)
+          ).join('\n')}
+        </motion.div>
+      ))}
     </div>
   )
 }
