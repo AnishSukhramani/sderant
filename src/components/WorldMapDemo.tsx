@@ -4,7 +4,7 @@ import WorldMap from "@/components/ui/world-map";
 export function WorldMapDemo() {
   return (
     <div className="fixed inset-0 w-full h-full -z-50 pointer-events-none bg-black">
-      <div className="w-4/5 h-4/5 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pt-8">
+      <div className="w-[110%] h-4/5 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pt-0">
         <WorldMap
         lineColor="#00ff41"
         dots={[

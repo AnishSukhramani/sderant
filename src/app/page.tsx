@@ -18,7 +18,7 @@ export default function LandingPage() {
   const heroScale = useTransform(scrollYProgress, [0, 0.2], [1, 0.8])
 
   return (
-    <div ref={containerRef} className="min-h-screen text-green-400 font-mono overflow-x-hidden relative">
+    <div ref={containerRef} className="min-h-screen text-[#00ff41] font-mono overflow-x-hidden relative">
       {/* World Map Background */}
       <WorldMapDemo />
       
@@ -30,17 +30,17 @@ export default function LandingPage() {
       <motion.nav 
         initial={{ y: -100 }}
         animate={{ y: 0 }}
-        className="fixed top-0 left-0 right-0 z-50 border-b border-green-400/20 bg-black/80 backdrop-blur-sm"
+        className="fixed top-0 left-0 right-0 z-50 border-b border-[#00ff41]/20 bg-black/80 backdrop-blur-sm"
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2 sm:space-x-3">
-              <Terminal className="w-6 h-6 sm:w-8 sm:h-8 text-green-400" />
+              <Terminal className="w-6 h-6 sm:w-8 sm:h-8 text-[#00ff41]" />
               <h1 className="text-lg sm:text-xl md:text-2xl font-bold glitch">SDERANT.exe</h1>
             </div>
             <Link href="/app">
               <MagneticButton
-                className="px-4 sm:px-6 py-2 border border-green-400 text-green-400 hover:bg-green-400 hover:text-black transition-all duration-300 text-sm sm:text-base"
+                className="px-4 sm:px-6 py-2 border border-[#00ff41] text-[#00ff41] hover:bg-[#00ff41] hover:text-black transition-all duration-300 text-sm sm:text-base"
               >
                 LAUNCH_APP
               </MagneticButton>
@@ -50,7 +50,7 @@ export default function LandingPage() {
       </motion.nav>
 
       {/* Hero Section */}
-      <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20 z-10">
+      <section className="relative min-h-screen bg-black/30 flex items-center justify-center overflow-hidden pt-20 z-10">
         
         <motion.div 
           style={{ opacity: heroOpacity, scale: heroScale }}
@@ -61,25 +61,26 @@ export default function LandingPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
           >
+            {/* Glitch text shadow animation - commented out */}
+            {/* animate={{ 
+              textShadow: [
+                "0.05em 0 0 #00ff41, -0.05em -0.025em 0 #ff6b35",
+                "0.025em 0.05em 0 #00ff41, 0.05em 0 0 #ff6b35",
+                "-0.05em -0.025em 0 #00ff41, 0.025em 0.025em 0 #ff6b35"
+              ]
+            }}
+            transition={{ duration: 2, repeat: Infinity }} */}
             <motion.h2 
-              className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-6 glitch"
-              animate={{ 
-                textShadow: [
-                  "0.05em 0 0 #00ff41, -0.05em -0.025em 0 #ff6b35",
-                  "0.025em 0.05em 0 #00ff41, 0.05em 0 0 #ff6b35",
-                  "-0.05em -0.025em 0 #00ff41, 0.025em 0.025em 0 #ff6b35"
-                ]
-              }}
-              transition={{ duration: 2, repeat: Infinity }}
+              className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-6 text-[#00ff41]"
             >
               WHERE DEVS RANT<br />
-              <span className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl text-green-400/80">
+              <span className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl text-[#00ff41]/80">
                 {'// Anonymous. Real. Raw.'}
               </span>
             </motion.h2>
             
             <motion.p 
-              className="text-lg sm:text-xl md:text-2xl text-green-400/70 mb-8 max-w-3xl mx-auto px-4"
+              className="text-lg sm:text-xl md:text-2xl text-[#00ff41]/70 mb-8 max-w-3xl mx-auto px-4"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.8, delay: 0.5 }}
@@ -97,7 +98,7 @@ export default function LandingPage() {
             >
               <Link href="/app">
                 <MagneticButton
-                  className="px-8 py-4 bg-green-400 text-black font-bold text-lg flex items-center space-x-2 group hover:shadow-[0_0_20px_rgba(0,255,65,0.5)]"
+                  className="px-8 py-4 bg-[#00ff41] text-black font-bold text-lg flex items-center space-x-2 group hover:shadow-[0_0_20px_rgba(0,255,65,0.5)]"
                   strength={0.4}
                 >
                   <span>START_RANTING</span>
@@ -106,7 +107,7 @@ export default function LandingPage() {
               </Link>
               
               <MagneticButton
-                className="px-8 py-4 border-2 border-green-400 text-green-400 font-bold text-lg hover:bg-green-400/10 transition-colors"
+                className="px-8 py-4 border-2 border-[#00ff41] text-[#00ff41] font-bold text-lg hover:bg-[#00ff41]/10 transition-colors"
                 onClick={() => {
                   document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })
                 }}
@@ -133,14 +134,14 @@ export default function LandingPage() {
               <motion.div
                 key={stat.label}
                 whileHover={{ scale: 1.05, borderColor: '#00ff41' }}
-                className="border border-green-400/30 bg-black/50 backdrop-blur-sm p-4 sm:p-6"
+                className="border border-[#00ff41]/30 bg-black/50 backdrop-blur-sm p-4 sm:p-6"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 1.2 + index * 0.1 }}
               >
-                <stat.icon className="w-6 h-6 sm:w-8 sm:h-8 text-green-400 mb-2 mx-auto" />
-                <div className="text-xl sm:text-2xl md:text-3xl font-bold text-green-400">{stat.value}</div>
-                <div className="text-xs sm:text-sm text-green-400/70">{stat.label}</div>
+                <stat.icon className="w-6 h-6 sm:w-8 sm:h-8 text-[#00ff41] mb-2 mx-auto" />
+                <div className="text-xl sm:text-2xl md:text-3xl font-bold text-[#00ff41]">{stat.value}</div>
+                <div className="text-xs sm:text-sm text-[#00ff41]/70">{stat.label}</div>
               </motion.div>
             ))}
           </motion.div>
@@ -152,9 +153,9 @@ export default function LandingPage() {
           animate={{ y: [0, 10, 0] }}
           transition={{ duration: 2, repeat: Infinity }}
         >
-          <div className="w-6 h-10 border-2 border-green-400 rounded-full flex justify-center pt-2">
+          <div className="w-6 h-10 border-2 border-[#00ff41] rounded-full flex justify-center pt-2">
             <motion.div 
-              className="w-1 h-2 bg-green-400 rounded-full"
+              className="w-1 h-2 bg-[#00ff41] rounded-full"
               animate={{ y: [0, 16, 0] }}
               transition={{ duration: 2, repeat: Infinity }}
             />
@@ -175,7 +176,7 @@ export default function LandingPage() {
             <h3 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 glitch">
               FEATURES.exe
             </h3>
-            <p className="text-lg sm:text-xl text-green-400/70">
+            <p className="text-lg sm:text-xl text-[#00ff41]/70">
               Built for developers, by developers
             </p>
           </motion.div>
@@ -186,7 +187,7 @@ export default function LandingPage() {
                 icon: Terminal,
                 title: 'ANONYMOUS_POSTING',
                 description: 'No sign-ups, no logins. Just open your terminal and start ranting. Your privacy is our priority.',
-                color: 'text-green-400'
+                color: 'text-[#00ff41]'
               },
               {
                 icon: Rocket,
@@ -230,11 +231,11 @@ export default function LandingPage() {
                   borderColor: '#00ff41',
                   boxShadow: '0 0 20px rgba(0, 255, 65, 0.3)'
                 }}
-                className="border border-green-400/30 bg-black/50 backdrop-blur-sm p-6 sm:p-8 group"
+                className="border border-[#00ff41]/30 bg-black/50 backdrop-blur-sm p-6 sm:p-8 group"
               >
                 <feature.icon className={`w-10 h-10 sm:w-12 sm:h-12 ${feature.color} mb-4 group-hover:scale-110 transition-transform`} />
-                <h4 className="text-xl sm:text-2xl font-bold mb-3 text-green-400">{feature.title}</h4>
-                <p className="text-green-400/70 text-sm sm:text-base">{feature.description}</p>
+                <h4 className="text-xl sm:text-2xl font-bold mb-3 text-[#00ff41]">{feature.title}</h4>
+                <p className="text-[#00ff41]/70 text-sm sm:text-base">{feature.description}</p>
               </motion.div>
             ))}
           </div>
@@ -254,7 +255,7 @@ export default function LandingPage() {
             <h3 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 glitch">
               HOW_IT_WORKS.sh
             </h3>
-            <p className="text-lg sm:text-xl text-green-400/70">
+            <p className="text-lg sm:text-xl text-[#00ff41]/70">
               Three steps to join the chaos
             </p>
           </motion.div>
@@ -288,18 +289,18 @@ export default function LandingPage() {
                 transition={{ duration: 0.6, delay: index * 0.2 }}
                 className="relative"
               >
-                <div className="border border-green-400/30 bg-black/80 backdrop-blur-sm p-6 sm:p-8">
-                  <div className="text-5xl sm:text-6xl font-bold text-green-400/20 mb-4">{step.step}</div>
-                  <h4 className="text-xl sm:text-2xl font-bold mb-3 text-green-400">{step.title}</h4>
-                  <p className="text-green-400/70 mb-4 text-sm sm:text-base">{step.description}</p>
-                  <div className="bg-black/50 border border-green-400/20 p-3 sm:p-4 font-mono text-xs sm:text-sm">
-                    <span className="text-green-400/50">$</span>{' '}
-                    <span className="text-green-400">{step.command}</span>
+                <div className="border border-[#00ff41]/30 bg-black/80 backdrop-blur-sm p-6 sm:p-8">
+                  <div className="text-5xl sm:text-6xl font-bold text-[#00ff41]/20 mb-4">{step.step}</div>
+                  <h4 className="text-xl sm:text-2xl font-bold mb-3 text-[#00ff41]">{step.title}</h4>
+                  <p className="text-[#00ff41]/70 mb-4 text-sm sm:text-base">{step.description}</p>
+                  <div className="bg-black/50 border border-[#00ff41]/20 p-3 sm:p-4 font-mono text-xs sm:text-sm">
+                    <span className="text-[#00ff41]/50">$</span>{' '}
+                    <span className="text-[#00ff41]">{step.command}</span>
                 </div>
                 </div>
                 {index < 2 && (
                   <div className="hidden md:block absolute top-1/2 -right-4 transform -translate-y-1/2">
-                    <ArrowRight className="w-8 h-8 text-green-400/30" />
+                    <ArrowRight className="w-8 h-8 text-[#00ff41]/30" />
                 </div>
                 )}
               </motion.div>
@@ -315,17 +316,17 @@ export default function LandingPage() {
           whileInView={{ opacity: 1, scale: 1 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8 }}
-          className="max-w-4xl mx-auto text-center border-2 border-green-400 bg-black/80 backdrop-blur-sm p-8 sm:p-12 md:p-16"
+          className="max-w-4xl mx-auto text-center border-2 border-[#00ff41] bg-black/80 backdrop-blur-sm p-8 sm:p-12 md:p-16"
         >
           <h3 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 glitch">
             READY_TO_RANT?
           </h3>
-          <p className="text-lg sm:text-xl text-green-400/70 mb-8">
+          <p className="text-lg sm:text-xl text-[#00ff41]/70 mb-8">
             Join thousands of developers sharing their unfiltered thoughts
           </p>
           <Link href="/app">
             <MagneticButton
-              className="px-8 sm:px-12 py-4 sm:py-5 bg-green-400 text-black font-bold text-lg sm:text-xl hover:shadow-[0_0_30px_rgba(0,255,65,0.6)]"
+              className="px-8 sm:px-12 py-4 sm:py-5 bg-[#00ff41] text-black font-bold text-lg sm:text-xl hover:shadow-[0_0_30px_rgba(0,255,65,0.6)]"
               strength={0.5}
             >
               INITIALIZE_RANT.exe
@@ -348,17 +349,17 @@ export default function LandingPage() {
                 scale: 1.05,
                 borderColor: '#00ff41'
               }}
-              className="border border-green-400/30 bg-black/80 backdrop-blur-sm p-6 sm:p-8"
+              className="border border-[#00ff41]/30 bg-black/80 backdrop-blur-sm p-6 sm:p-8"
             >
-              <Mail className="w-10 h-10 sm:w-12 sm:h-12 text-green-400 mb-4" />
-              <h4 className="text-xl sm:text-2xl font-bold mb-3 text-green-400">CONTACT_DEV</h4>
-              <p className="text-green-400/70 mb-6 text-sm sm:text-base">
+              <Mail className="w-10 h-10 sm:w-12 sm:h-12 text-[#00ff41] mb-4" />
+              <h4 className="text-xl sm:text-2xl font-bold mb-3 text-[#00ff41]">CONTACT_DEV</h4>
+              <p className="text-[#00ff41]/70 mb-6 text-sm sm:text-base">
                 Have questions? Found a bug? Want to suggest a feature? Reach out to the developer.
               </p>
               <motion.a
                 href="mailto:dev@sderant.com"
                 whileHover={{ x: 5 }}
-                className="text-green-400 flex items-center space-x-2 group text-sm sm:text-base"
+                className="text-[#00ff41] flex items-center space-x-2 group text-sm sm:text-base"
               >
                 <span>dev@sderant.com</span>
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -375,11 +376,11 @@ export default function LandingPage() {
                 scale: 1.05,
                 borderColor: '#00ff41'
               }}
-              className="border border-green-400/30 bg-black/80 backdrop-blur-sm p-6 sm:p-8"
+              className="border border-[#00ff41]/30 bg-black/80 backdrop-blur-sm p-6 sm:p-8"
             >
               <Code className="w-10 h-10 sm:w-12 sm:h-12 text-blue-400 mb-4" />
-              <h4 className="text-xl sm:text-2xl font-bold mb-3 text-green-400">MAKE_IT_BETTER</h4>
-              <p className="text-green-400/70 mb-6 text-sm sm:text-base">
+              <h4 className="text-xl sm:text-2xl font-bold mb-3 text-[#00ff41]">MAKE_IT_BETTER</h4>
+              <p className="text-[#00ff41]/70 mb-6 text-sm sm:text-base">
                 Open source and proud. Contribute code, report issues, or suggest improvements. Make SDERANT better for everyone.
               </p>
               <motion.a
@@ -405,11 +406,11 @@ export default function LandingPage() {
                 scale: 1.05,
                 borderColor: '#00ff41'
               }}
-              className="border border-green-400/30 bg-black/80 backdrop-blur-sm p-6 sm:p-8"
+              className="border border-[#00ff41]/30 bg-black/80 backdrop-blur-sm p-6 sm:p-8"
             >
               <DollarSign className="w-10 h-10 sm:w-12 sm:h-12 text-yellow-400 mb-4" />
-              <h4 className="text-xl sm:text-2xl font-bold mb-3 text-green-400">SUPPORT_US</h4>
-              <p className="text-green-400/70 mb-6 text-sm sm:text-base">
+              <h4 className="text-xl sm:text-2xl font-bold mb-3 text-[#00ff41]">SUPPORT_US</h4>
+              <p className="text-[#00ff41]/70 mb-6 text-sm sm:text-base">
                 Help us keep the servers running and the platform free. Every contribution helps us build better features.
               </p>
               <motion.a
@@ -429,22 +430,22 @@ export default function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="relative border-t border-green-400/20 bg-black/80 backdrop-blur-sm py-8 px-4 sm:px-6 lg:px-8 z-10">
+      <footer className="relative border-t border-[#00ff41]/20 bg-black/80 backdrop-blur-sm py-8 px-4 sm:px-6 lg:px-8 z-10">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row items-center justify-between space-y-4 md:space-y-0">
             <div className="flex items-center space-x-2">
-              <Terminal className="w-6 h-6 text-green-400" />
-              <span className="text-green-400/70 text-sm sm:text-base">
+              <Terminal className="w-6 h-6 text-[#00ff41]" />
+              <span className="text-[#00ff41]/70 text-sm sm:text-base">
                 © 2025 SDERANT. Built with ❤️ by developers, for developers.
               </span>
             </div>
             <div className="flex items-center space-x-6 text-sm sm:text-base">
-              <a href="#" className="text-green-400/70 hover:text-green-400 transition-colors">Privacy</a>
-              <a href="#" className="text-green-400/70 hover:text-green-400 transition-colors">Terms</a>
-              <a href="#" className="text-green-400/70 hover:text-green-400 transition-colors">Status</a>
+              <a href="#" className="text-[#00ff41]/70 hover:text-[#00ff41] transition-colors">Privacy</a>
+              <a href="#" className="text-[#00ff41]/70 hover:text-[#00ff41] transition-colors">Terms</a>
+              <a href="#" className="text-[#00ff41]/70 hover:text-[#00ff41] transition-colors">Status</a>
             </div>
           </div>
-          <div className="mt-4 text-center text-green-400/50 text-xs sm:text-sm">
+          <div className="mt-4 text-center text-[#00ff41]/50 text-xs sm:text-sm">
             <p>No cookies, no tracking, no bullshit. Just pure developer chaos.</p>
           </div>
         </div>
@@ -468,7 +469,7 @@ function MatrixRain() {
       {columns.map((col) => (
         <motion.div
           key={col}
-          className="absolute top-0 text-green-400 text-xs font-mono"
+          className="absolute top-0 text-[#00ff41] text-xs font-mono"
           style={{ left: `${col * 20}px` }}
           initial={{ y: -100 }}
           animate={{ y: '100vh' }}

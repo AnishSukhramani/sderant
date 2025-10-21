@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import Image from 'next/image'
 import { supabase } from '@/lib/supabase'
 import { Terminal, Image as ImageIcon, X } from 'lucide-react'
@@ -41,9 +41,10 @@ export function PostForm({ onPostCreated }: PostFormProps) {
     }
   }, [commandHistory])
 
-  const addCommand = (type: 'input' | 'output', content: string) => {
+
+  const addCommand = useCallback((type: 'input' | 'output', content: string) => {
     setCommandHistory(prev => [...prev, { type, content, timestamp: new Date() }])
-  }
+  }, [])
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
@@ -333,7 +334,7 @@ export function PostForm({ onPostCreated }: PostFormProps) {
     }
   }
 
-  const startCLI = () => {
+  const startCLI = useCallback(() => {
     setIsActive(true)
     setCommandHistory([])
     setCurrentStep('name')
@@ -341,7 +342,22 @@ export function PostForm({ onPostCreated }: PostFormProps) {
     addCommand('output', 'Welcome to the post creation terminal!')
     addCommand('output', 'Type "help" for available commands')
     addCommand('output', 'Enter your name (or type "skip" for anonymous):')
-  }
+  }, [addCommand])
+
+  // Handle Ctrl+` key binding to open CLI
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.key === '`' && !isActive) {
+        e.preventDefault()
+        startCLI()
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [isActive, startCLI])
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-[9999]">
@@ -423,7 +439,7 @@ export function PostForm({ onPostCreated }: PostFormProps) {
                 value={currentCommand}
                 onChange={(e) => setCurrentCommand(e.target.value)}
                 onKeyPress={handleKeyPress}
-                className="bg-transparent text-green-400 outline-none flex-1 ml-1 text-xs md:text-sm"
+                className="bg-transparent text-[#00ff41] outline-none flex-1 ml-1 text-xs md:text-sm"
                 placeholder="Enter command..."
                 disabled={isSubmitting}
               />

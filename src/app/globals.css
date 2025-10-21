@@ -93,8 +93,8 @@ body {
 
 .terminal-input:focus {
   outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 1px var(--accent);
+  border-color: var(--foreground);
+  box-shadow: none;
 }
 
 /* Matrix-style background */
@@ -420,9 +420,8 @@ button:focus-visible,
 a:focus-visible,
 input:focus-visible,
 textarea:focus-visible {
-  outline: 2px solid #00ff41;
-  outline-offset: 2px;
-  transition: outline-offset 0.2s ease;
+  outline: none;
+  outline-offset: 0;
 }
 
 /* Button press effect */
@@ -459,7 +458,7 @@ a:hover::after {
 /* Input focus glow */
 input:focus,
 textarea:focus {
-  box-shadow: 0 0 0 2px rgba(0, 255, 65, 0.2), 0 0 20px rgba(0, 255, 65, 0.1);
+  box-shadow: none;
 }
 
 /* Smooth scrollbar thumb */
@@ -657,9 +656,8 @@ img:hover {
 
 /* Focus ring enhancement */
 *:focus-visible {
-  outline: 2px solid #00ff41;
-  outline-offset: 3px;
-  animation: focusPulse 1.5s ease-in-out infinite;
+  outline: none;
+  outline-offset: 0;
 }
 
 @keyframes focusPulse {
