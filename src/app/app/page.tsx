@@ -122,7 +122,7 @@ export default function Home() {
                 onClick={() => setTerminalVisible(!terminalVisible)}
                 className="px-3 py-1.5 text-sm border border-green-400 hover:bg-green-400 hover:text-black transition-colors"
               >
-                {terminalVisible ? 'HIDE' : 'TERMINAL'}
+                {terminalVisible ? 'HIDE' : 'INFO'}
               </button>
             </div>
             
@@ -199,7 +199,7 @@ export default function Home() {
                 onClick={() => setTerminalVisible(!terminalVisible)}
                 className="px-4 py-2 border border-green-400 hover:bg-green-400 hover:text-black transition-colors"
               >
-                {terminalVisible ? 'HIDE_TERMINAL' : 'SHOW_TERMINAL'}
+                {terminalVisible ? 'HIDE_INFO' : 'SHOW_INFO'}
               </button>
             </div>
           </div>
@@ -292,19 +292,19 @@ export default function Home() {
 
         {/* Main Content - 80% */}
         <main className="flex-1 relative z-10 px-4 py-8 pb-32">
-          {/* Terminal */}
+          {/* Terminal Info */}
           {terminalVisible && (
             <div className="mb-8 border border-green-400 bg-black/90 p-4">
               <div className="flex items-center space-x-2 mb-4">
                 <div className="w-3 h-3 bg-red-500 rounded-full"></div>
                 <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
                 <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                <span className="text-sm text-green-400/70 ml-4">terminal@life-as-sde:~$</span>
+                <span className="text-sm text-green-400/70 ml-4">info@life-as-sde:~$</span>
               </div>
               <div className="text-sm">
-                <p className="text-green-400/70">Welcome to the developer bulletin board!</p>
-                <p className="text-green-400/70">Share your thoughts, memes, and experiences.</p>
-                <p className="text-green-400/70">No accounts needed - just post anonymously.</p>
+                <p className="text-green-400/70">System Status: ONLINE</p>
+                <p className="text-green-400/70">Use the terminal at the bottom to interact with the system</p>
+                <p className="text-green-400/70">Press Ctrl+` or click OPEN_TERMINAL to start</p>
               </div>
             </div>
           )}

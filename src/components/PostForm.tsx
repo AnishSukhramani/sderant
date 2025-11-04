@@ -67,9 +67,9 @@ export function PostForm({ onPostCreated }: PostFormProps) {
         addCommand('output', 'Available commands:')
         addCommand('output', '  help - Show this help message')
         addCommand('output', '  clear - Clear terminal')
-        addCommand('output', '  exit/quit - Exit post creation')
-        addCommand('output', '  skip - Skip current step')
-        addCommand('output', '  back - Go back to previous step')
+        addCommand('output', '  exit/quit - Close terminal')
+        addCommand('output', '  skip - Skip current step (during post creation)')
+        addCommand('output', '  back - Go back to previous step (during post creation)')
         setCurrentCommand('')
         return
       }
@@ -338,18 +338,23 @@ export function PostForm({ onPostCreated }: PostFormProps) {
     setIsActive(true)
     setCommandHistory([])
     setCurrentStep('name')
-    addCommand('output', '=== POST CREATION CLI ===')
-    addCommand('output', 'Welcome to the post creation terminal!')
+    addCommand('output', '=== DEVELOPER TERMINAL ===')
+    addCommand('output', 'Welcome to the interactive CLI!')
     addCommand('output', 'Type "help" for available commands')
     addCommand('output', 'Enter your name (or type "skip" for anonymous):')
   }, [addCommand])
 
-  // Handle Ctrl+` key binding to open CLI
+  // Handle Ctrl+` key binding to toggle terminal
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.ctrlKey && e.key === '`' && !isActive) {
+      if (e.ctrlKey && e.key === '`') {
         e.preventDefault()
-        startCLI()
+        if (isActive) {
+          setIsActive(false)
+          setCurrentCommand('')
+        } else {
+          startCLI()
+        }
       }
     }
 
@@ -367,7 +372,7 @@ export function PostForm({ onPostCreated }: PostFormProps) {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
             <div className="flex items-center space-x-2">
               <Terminal className="w-4 h-4 md:w-5 md:h-5 text-green-400" />
-              <h2 className="text-base md:text-lg font-bold">CREATE_NEW_POST.exe</h2>
+              <h2 className="text-base md:text-lg font-bold">TERMINAL.exe</h2>
             </div>
             <div className="flex items-center space-x-2">
               {isActive && (
@@ -384,25 +389,26 @@ export function PostForm({ onPostCreated }: PostFormProps) {
                   className="px-3 py-1.5 md:px-4 md:py-2 bg-green-400 text-black font-bold hover:bg-green-300 transition-colors flex items-center space-x-1 md:space-x-2 text-sm md:text-base"
                 >
                   <Terminal className="w-3 h-3 md:w-4 md:h-4" />
-                  <span className="hidden sm:inline">START_CLI</span>
-                  <span className="sm:hidden">START</span>
+                  <span className="hidden sm:inline">OPEN_TERMINAL</span>
+                  <span className="sm:hidden">OPEN</span>
                 </button>
               )}
             </div>
           </div>
         </div>
         
-        {/* CLI content that slides up */}
+        {/* CLI content that slides up/down */}
         <div className={`transition-all duration-500 ease-in-out overflow-hidden ${
-          isActive ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0'
+          isActive ? 'max-h-screen' : 'max-h-0'
         }`}>
-          {isActive && (
-            <div className="p-3 md:p-4 h-[calc(100vh-80px)] flex flex-col">
+          <div className={`p-3 md:p-4 h-[calc(100vh-80px)] flex flex-col transition-all duration-500 ease-in-out ${
+            isActive ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0 pointer-events-none'
+          }`}>
               <div className="flex items-center space-x-2 mb-4">
                 <div className="w-3 h-3 bg-red-500 rounded-full"></div>
                 <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
                 <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                <span className="text-sm text-green-400/70 ml-4">post-creator@life-as-sde:~$</span>
+                <span className="text-sm text-green-400/70 ml-4">user@life-as-sde:~$</span>
               </div>
               
               <div 
@@ -490,8 +496,7 @@ export function PostForm({ onPostCreated }: PostFormProps) {
             <p>Available commands: help, clear, skip, back, exit</p>
             <p>Current step: {currentStep.toUpperCase()}</p>
           </div>
-            </div>
-          )}
+          </div>
         </div>
       </div>
     </div>
