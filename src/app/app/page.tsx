@@ -7,7 +7,7 @@ import { PostCard } from '@/components/PostCard'
 import { TrendingFilter } from '@/components/TrendingFilter'
 import { Terminal } from '@/components/Terminal'
 import { TimeDisplay } from '@/components/TimeDisplay'
-import { TrendingUp, Clock, Search, X, Home as HomeIcon } from 'lucide-react'
+import { TrendingUp, Clock, Search, X } from 'lucide-react'
 import Link from 'next/link'
 import type { Post, TrendingPeriod } from '@/types'
 
@@ -112,11 +112,10 @@ export default function Home() {
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
                 <Terminal className="w-6 h-6 md:w-8 md:h-8 text-green-400" />
-                <h1 className="text-lg md:text-2xl font-bold glitch">
-                  LIFE_AS_SDE.exe
-                </h1>
-                <Link href="/" className="p-2 border border-green-400/50 hover:border-green-400 hover:bg-green-400/10 transition-colors inline-block">
-                  <HomeIcon className="w-4 h-4" />
+                <Link href="/">
+                  <h1 className="text-lg md:text-2xl font-bold glitch cursor-pointer">
+                    LIFE_AS_SDE.exe
+                  </h1>
                 </Link>
               </div>
               <button
@@ -162,12 +161,10 @@ export default function Home() {
           <div className="hidden md:flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <Terminal className="w-8 h-8 text-green-400" />
-              <h1 className="text-2xl font-bold glitch">
-                LIFE_AS_SDE.exe
-              </h1>
-              <Link href="/" className="ml-4 px-4 py-2 border border-green-400/50 hover:border-green-400 hover:bg-green-400/10 transition-colors text-sm flex items-center space-x-2">
-                <HomeIcon className="w-4 h-4" />
-                <span>HOME</span>
+              <Link href="/">
+                <h1 className="text-2xl font-bold glitch cursor-pointer">
+                  LIFE_AS_SDE.exe
+                </h1>
               </Link>
             </div>
             
