@@ -6,7 +6,7 @@ export type Post = {
   image_url: string | null
   created_at: string
   updated_at: string
-  likes_count: number
+  street_creds_count: number
   comments_count: number
   views_count: number
 }
@@ -20,10 +20,9 @@ export type Comment = {
   updated_at: string
 }
 
-export type Reaction = {
+export type StreetCred = {
   id: string
   post_id: string
-  type: 'like' | 'dislike' | 'laugh' | 'angry' | 'heart'
   ip_address: string
   created_at: string
 }

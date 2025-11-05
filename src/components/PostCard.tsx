@@ -1,17 +1,14 @@
 'use client'
 
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react'
 import Image from 'next/image'
 import { supabase } from '@/lib/supabase'
 import type { Post, Comment } from '@/types'
 import { getUserIdentifier, formatTimeAgo } from '@/lib/utils'
 import { 
-  Heart, 
   MessageCircle, 
   Eye, 
-  ThumbsUp, 
-  Laugh, 
-  Angry,
+  Award,
   ChevronDown,
   ChevronUp,
   ExternalLink
@@ -27,8 +24,9 @@ export function PostCard({ post }: PostCardProps) {
   const [newComment, setNewComment] = useState('')
   const [commentName, setCommentName] = useState('')
   const [isSubmittingComment, setIsSubmittingComment] = useState(false)
-  const [userReactions, setUserReactions] = useState<string[]>([])
-  const [isReacting, setIsReacting] = useState(false)
+  const [hasGivenCred, setHasGivenCred] = useState(false)
+  const [isGivingCred, setIsGivingCred] = useState(false)
+  const [streetCredsCount, setStreetCredsCount] = useState(post.street_creds_count)
   const [hasViewed] = useState(false)
   const postRef = useRef<HTMLElement>(null)
 
@@ -52,52 +50,79 @@ export function PostCard({ post }: PostCardProps) {
     }
   }, [post.id])
 
+  const checkUserStreetCred = useCallback(async () => {
+    try {
+      const userIdentifier = getUserIdentifier()
+      
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data, error } = await (supabase as any)
+        .from('street_creds')
+        .select('id')
+        .eq('post_id', post.id)
+        .eq('ip_address', userIdentifier)
+        .maybeSingle()
 
-  const handleReaction = async (type: 'like' | 'dislike' | 'laugh' | 'angry' | 'heart') => {
-    if (isReacting) return
+      if (!error && data) {
+        setHasGivenCred(true)
+      } else {
+        setHasGivenCred(false)
+      }
+    } catch (error) {
+      console.error('Error checking street cred:', error)
+    }
+  }, [post.id])
+
+  // Check if user has already given a street cred on mount
+  useEffect(() => {
+    checkUserStreetCred()
+  }, [checkUserStreetCred])
+
+  const handleStreetCred = async () => {
+    if (isGivingCred) return
     
-    setIsReacting(true)
+    setIsGivingCred(true)
     
     try {
       const userIdentifier = getUserIdentifier()
-      const isReacted = userReactions.includes(type)
       
-      if (isReacted) {
-        // Remove reaction
+      if (hasGivenCred) {
+        // Remove street cred
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const { error } = await (supabase as any)
-          .from('reactions')
+          .from('street_creds')
           .delete()
           .eq('post_id', post.id)
-          .eq('type', type)
           .eq('ip_address', userIdentifier)
         
         if (!error) {
-          setUserReactions(prev => prev.filter(r => r !== type))
-          // Trigger a page refresh to update counts
-          setTimeout(() => window.location.reload(), 100)
+          setHasGivenCred(false)
+          // Update the local count for instant feedback
+          setStreetCredsCount(prev => Math.max(0, prev - 1))
+        } else {
+          console.error('Error removing street cred:', error)
         }
       } else {
-        // Add reaction
+        // Give street cred
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const { error } = await (supabase as any)
-          .from('reactions')
+          .from('street_creds')
           .insert({
             post_id: post.id,
-            type,
             ip_address: userIdentifier
           })
         
         if (!error) {
-          setUserReactions(prev => [...prev, type])
-          // Trigger a page refresh to update counts
-          setTimeout(() => window.location.reload(), 100)
+          setHasGivenCred(true)
+          // Update the local count for instant feedback
+          setStreetCredsCount(prev => prev + 1)
+        } else {
+          console.error('Error giving street cred:', error)
         }
       }
     } catch (error) {
       console.error('Error:', error)
     } finally {
-      setIsReacting(false)
+      setIsGivingCred(false)
     }
   }
 
@@ -204,55 +229,23 @@ export function PostCard({ post }: PostCardProps) {
           </div>
         )}
 
-        {/* Reactions */}
+        {/* Street Creds */}
         <div className="flex items-center space-x-2 mb-3">
           <button
-            onClick={() => handleReaction('like')}
-            disabled={isReacting}
-            className={`flex items-center space-x-1 px-2 py-1 border transition-colors text-xs ${
-              userReactions.includes('like')
-                ? 'border-green-400 bg-green-400/20 text-green-400'
-                : 'border-green-400/50 hover:border-green-400 text-green-400/70'
+            onClick={handleStreetCred}
+            disabled={isGivingCred}
+            className={`flex items-center space-x-2 px-3 py-2 border transition-all duration-200 ${
+              hasGivenCred
+                ? 'border-yellow-400 bg-yellow-400/20 text-yellow-400 shadow-lg shadow-yellow-400/20'
+                : 'border-green-400/50 hover:border-yellow-400 hover:bg-yellow-400/10 text-green-400 hover:text-yellow-400'
             }`}
+            title="Give Street Cred"
           >
-            <ThumbsUp className="w-3 h-3" />
-            <span>{post.likes_count}</span>
-          </button>
-          
-          <button
-            onClick={() => handleReaction('heart')}
-            disabled={isReacting}
-            className={`flex items-center space-x-1 px-2 py-1 border transition-colors text-xs ${
-              userReactions.includes('heart')
-                ? 'border-red-400 bg-red-400/20 text-red-400'
-                : 'border-red-400/50 hover:border-red-400 text-red-400/70'
-            }`}
-          >
-            <Heart className="w-3 h-3" />
-          </button>
-          
-          <button
-            onClick={() => handleReaction('laugh')}
-            disabled={isReacting}
-            className={`flex items-center space-x-1 px-2 py-1 border transition-colors text-xs ${
-              userReactions.includes('laugh')
-                ? 'border-yellow-400 bg-yellow-400/20 text-yellow-400'
-                : 'border-yellow-400/50 hover:border-yellow-400 text-yellow-400/70'
-            }`}
-          >
-            <Laugh className="w-3 h-3" />
-          </button>
-          
-          <button
-            onClick={() => handleReaction('angry')}
-            disabled={isReacting}
-            className={`flex items-center space-x-1 px-2 py-1 border transition-colors text-xs ${
-              userReactions.includes('angry')
-                ? 'border-orange-400 bg-orange-400/20 text-orange-400'
-                : 'border-orange-400/50 hover:border-orange-400 text-orange-400/70'
-            }`}
-          >
-            <Angry className="w-3 h-3" />
+            <Award className={`w-4 h-4 ${hasGivenCred ? 'fill-yellow-400' : ''}`} />
+            <span className="font-bold text-sm">{streetCredsCount}</span>
+            <span className="text-xs font-mono">
+              {streetCredsCount === 1 ? 'CRED' : 'CREDS'}
+            </span>
           </button>
         </div>
 

@@ -58,12 +58,12 @@ export default function Home() {
           return
         }
       } else {
-        // Sort by trending score (likes + comments + views) only if not searching
+        // Sort by trending score (street_creds + comments + views) only if not searching
         const sortedPosts = searchQuery.trim() 
           ? data || []
           : data?.sort((a: Post, b: Post) => {
-              const scoreA = a.likes_count + a.comments_count + a.views_count
-              const scoreB = b.likes_count + b.comments_count + b.views_count
+              const scoreA = a.street_creds_count + a.comments_count + a.views_count
+              const scoreB = b.street_creds_count + b.comments_count + b.views_count
               return scoreB - scoreA
             }) || []
         setPosts(sortedPosts)
@@ -250,9 +250,9 @@ export default function Home() {
                 </div>
                 
                 <div className="flex justify-between">
-                  <span className="text-green-400/60">TOTAL_REACTIONS:</span>
-                  <span className="text-red-400 font-bold">
-                    {posts.reduce((sum, post) => sum + post.likes_count, 0)}
+                  <span className="text-green-400/60">STREET_CREDS:</span>
+                  <span className="text-yellow-400 font-bold">
+                    {posts.reduce((sum, post) => sum + post.street_creds_count, 0)}
                   </span>
                 </div>
                 
@@ -356,8 +356,8 @@ export default function Home() {
                 ) : (
                   posts
                     .sort((a, b) => {
-                      const scoreA = a.likes_count + a.comments_count + a.views_count
-                      const scoreB = b.likes_count + b.comments_count + b.views_count
+                      const scoreA = a.street_creds_count + a.comments_count + a.views_count
+                      const scoreB = b.street_creds_count + b.comments_count + b.views_count
                       return scoreB - scoreA
                     })
                     .slice(0, 10)

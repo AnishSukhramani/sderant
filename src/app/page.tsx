@@ -197,9 +197,9 @@ export default function LandingPage() {
               },
               {
                 icon: Heart,
-                title: 'REACT_&_ENGAGE',
-                description: 'Like, comment, and share your thoughts. Build connections without compromising anonymity.',
-                color: 'text-red-400'
+                title: 'STREET_CRED_SYSTEM',
+                description: 'Give Street Creds to posts you respect. Comment and share your thoughts. Build connections without compromising anonymity.',
+                color: 'text-yellow-400'
               },
               {
                 icon: Code,
