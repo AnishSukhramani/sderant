@@ -27,5 +27,38 @@ export type StreetCred = {
   created_at: string
 }
 
+export type User = {
+  id: string
+  name: string
+  username_hash: string
+  created_at: string
+}
+
+export type UserInfo = {
+  id: string
+  user_id: string
+  username: string
+  photo_url: string | null
+  gender: 'male' | 'female' | 'other' | 'prefer_not_to_say' | null
+  email: string | null
+  phone: string | null
+  bio: string | null
+  about: string | null
+  github_url: string | null
+  linkedin_url: string | null
+  twitter_url: string | null
+  instagram_url: string | null
+  facebook_url: string | null
+  address_line1: string | null
+  address_line2: string | null
+  city: string | null
+  state: string | null
+  country: string | null
+  postal_code: string | null
+  is_public: boolean
+  created_at: string
+  updated_at: string
+}
+
 export type TrendingPeriod = 'hour' | 'day' | 'all'
 

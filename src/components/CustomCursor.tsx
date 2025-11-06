@@ -69,8 +69,8 @@ export function CustomCursor() {
 
     const handleScroll = () => {
       const scrollHeight = document.documentElement.scrollHeight - window.innerHeight
-      const progress = window.scrollY / scrollHeight
-      setScrollProgress(progress)
+      const progress = scrollHeight > 0 ? window.scrollY / scrollHeight : 0
+      setScrollProgress(isNaN(progress) ? 0 : Math.max(0, Math.min(1, progress))) // Clamp between 0 and 1
     }
 
     const handleMouseDown = (e: MouseEvent) => {
@@ -254,8 +254,8 @@ export function CustomCursor() {
         style={{
           left: cursorXSpring,
           top: cursorYSpring,
-          opacity: scrollProgress * 0.5 + 0.2,
-          scale: 1 + scrollProgress * 0.5,
+          opacity: Math.max(0.2, Math.min(1, (scrollProgress || 0) * 0.5 + 0.2)), // Ensure valid opacity (0.2 to 1.0)
+          scale: 1 + (scrollProgress || 0) * 0.5,
         }}
       />
 

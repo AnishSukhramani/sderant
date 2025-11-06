@@ -7,20 +7,27 @@ import { PostCard } from '@/components/PostCard'
 import { TrendingFilter } from '@/components/TrendingFilter'
 import { Terminal } from '@/components/Terminal'
 import { TimeDisplay } from '@/components/TimeDisplay'
-import { TrendingUp, Clock, Search, X } from 'lucide-react'
+import { TrendingUp, Clock, Search, X, User, LogOut } from 'lucide-react'
 import Link from 'next/link'
+import { useAuth } from '@/contexts/AuthContext'
+import { motion, AnimatePresence } from 'framer-motion'
 import type { Post, TrendingPeriod } from '@/types'
 
 export default function Home() {
+  const { user, logout } = useAuth()
   const [posts, setPosts] = useState<Post[]>([])
   const [trendingPeriod, setTrendingPeriod] = useState<TrendingPeriod>('all')
   const [searchQuery, setSearchQuery] = useState('')
   const [loading, setLoading] = useState(true)
   const [terminalVisible, setTerminalVisible] = useState(false)
+  const [showProfileMenu, setShowProfileMenu] = useState(false)
+  const [searchResults, setSearchResults] = useState<{ type: 'post' | 'profile', data: any }[]>([])
+  const [searchingProfiles, setSearchingProfiles] = useState(false)
 
   const fetchPosts = useCallback(async () => {
     try {
       setLoading(true)
+      setSearchingProfiles(false)
       let query = supabase
         .from('posts')
         .select('*')
@@ -28,6 +35,23 @@ export default function Home() {
       // Apply search filter if search query exists
       if (searchQuery.trim()) {
         query = query.or(`title.ilike.%${searchQuery}%,name.ilike.%${searchQuery}%,content.ilike.%${searchQuery}%`)
+        
+        // Also search for profiles
+        setSearchingProfiles(true)
+        const { data: profiles } = await supabase
+          .from('userinfo')
+          .select('*')
+          .or(`username.ilike.%${searchQuery}%,bio.ilike.%${searchQuery}%`)
+          .eq('is_public', true)
+          .limit(5)
+        
+        if (profiles) {
+          const profileResults = profiles.map(p => ({ type: 'profile' as const, data: p }))
+          setSearchResults(profileResults)
+        }
+        setSearchingProfiles(false)
+      } else {
+        setSearchResults([])
       }
 
       // Apply time filter
@@ -94,6 +118,20 @@ export default function Home() {
     }
   }, [fetchPosts])
 
+  // Close profile menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (showProfileMenu && !(event.target as Element).closest('.profile-menu-container')) {
+        setShowProfileMenu(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [showProfileMenu])
+
   const handleNewPost = () => {
     fetchPosts()
   }
@@ -104,7 +142,7 @@ export default function Home() {
       <div className="fixed inset-0 matrix-bg pointer-events-none" />
       
       {/* Header */}
-      <header className="relative z-10 border-b border-green-400/20 bg-black/80 backdrop-blur-sm">
+      <header className="relative z-[9998] border-b border-green-400/20 bg-black/80 backdrop-blur-sm">
         <div className="max-w-6xl mx-auto px-4 py-4 md:py-6">
           {/* Mobile Layout */}
           <div className="flex flex-col space-y-4 md:hidden">
@@ -118,12 +156,67 @@ export default function Home() {
                   </h1>
                 </Link>
               </div>
-              <button
-                onClick={() => setTerminalVisible(!terminalVisible)}
-                className="px-3 py-1.5 text-sm border border-green-400 hover:bg-green-400 hover:text-black transition-colors"
-              >
-                {terminalVisible ? 'HIDE' : 'INFO'}
-              </button>
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => setTerminalVisible(!terminalVisible)}
+                  className="px-3 py-1.5 text-sm border border-green-400 hover:bg-green-400 hover:text-black transition-colors"
+                >
+                  {terminalVisible ? 'HIDE' : 'INFO'}
+                </button>
+                
+                {/* Profile Button - Mobile */}
+                {user ? (
+                  <div className="relative z-[10000] profile-menu-container">
+                    <button
+                      onClick={() => setShowProfileMenu(!showProfileMenu)}
+                      className="w-10 h-10 rounded-full border-2 border-green-400 bg-black flex items-center justify-center hover:bg-green-400 hover:text-black transition-colors relative z-[10000]"
+                    >
+                      <User className="w-5 h-5" />
+                    </button>
+                    <AnimatePresence>
+                      {showProfileMenu && (
+                        <motion.div
+                          initial={{ opacity: 0, y: -10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -10 }}
+                          className="absolute right-0 mt-2 w-48 border border-green-400/30 z-[10001]"
+                          style={{ backgroundColor: '#000000', position: 'absolute' }}
+                        >
+                          <div className="p-3 bg-black border-b border-green-400/20">
+                            <p className="text-xs text-green-400/70">LOGGED_IN_AS:</p>
+                            <p className="text-sm font-bold truncate">{user.name}</p>
+                          </div>
+                          <Link href={`/profile/${encodeURIComponent(user.name)}`}>
+                            <button
+                              onClick={() => setShowProfileMenu(false)}
+                              className="w-full p-3 text-left flex items-center space-x-2 hover:bg-green-400/10 transition-colors"
+                            >
+                              <User className="w-4 h-4" />
+                              <span>VIEW_PROFILE</span>
+                            </button>
+                          </Link>
+                          <button
+                            onClick={() => {
+                              logout()
+                              setShowProfileMenu(false)
+                            }}
+                            className="w-full p-3 text-left flex items-center space-x-2 hover:bg-green-400/10 transition-colors"
+                          >
+                            <LogOut className="w-4 h-4" />
+                            <span>LOGOUT</span>
+                          </button>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                ) : (
+                  <Link href="/auth/login">
+                    <button className="w-10 h-10 rounded-full border-2 border-green-400 bg-black flex items-center justify-center hover:bg-green-400 hover:text-black transition-colors">
+                      <User className="w-5 h-5" />
+                    </button>
+                  </Link>
+                )}
+              </div>
             </div>
             
             {/* Search Bar - Full Width on Mobile */}
@@ -201,6 +294,61 @@ export default function Home() {
               >
                 {terminalVisible ? 'HIDE_INFO' : 'SHOW_INFO'}
               </button>
+              
+              {/* Profile Button - Desktop */}
+              {user ? (
+                <div className="relative z-[10000] profile-menu-container">
+                  <button
+                    onClick={() => setShowProfileMenu(!showProfileMenu)}
+                    className="w-10 h-10 rounded-full border-2 border-green-400 bg-black flex items-center justify-center hover:bg-green-400 hover:text-black transition-colors relative z-[10000]"
+                    title={user.name}
+                  >
+                    <User className="w-5 h-5" />
+                  </button>
+                  <AnimatePresence>
+                    {showProfileMenu && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        className="absolute right-0 mt-2 w-56 border border-green-400/30 z-[10001]"
+                        style={{ backgroundColor: '#000000', position: 'absolute' }}
+                      >
+                        <div className="p-4 bg-black border-b border-green-400/20">
+                          <p className="text-xs text-green-400/70 mb-1">LOGGED_IN_AS:</p>
+                          <p className="text-base font-bold truncate">{user.name}</p>
+                          <p className="text-xs text-green-400/50 mt-1">User ID: {user.id.slice(0, 8)}...</p>
+                        </div>
+                        <Link href={`/profile/${encodeURIComponent(user.name)}`}>
+                          <button
+                            onClick={() => setShowProfileMenu(false)}
+                            className="w-full p-3 text-left flex items-center space-x-2 hover:bg-green-400/10 transition-colors"
+                          >
+                            <User className="w-4 h-4" />
+                            <span>VIEW_PROFILE</span>
+                          </button>
+                        </Link>
+                        <button
+                          onClick={() => {
+                            logout()
+                            setShowProfileMenu(false)
+                          }}
+                          className="w-full p-3 text-left flex items-center space-x-2 hover:bg-green-400/10 transition-colors"
+                        >
+                          <LogOut className="w-4 h-4" />
+                          <span>LOGOUT</span>
+                        </button>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              ) : (
+                <Link href="/auth/login">
+                  <button className="w-10 h-10 rounded-full border-2 border-green-400 bg-black flex items-center justify-center hover:bg-green-400 hover:text-black transition-colors">
+                    <User className="w-5 h-5" />
+                  </button>
+                </Link>
+              )}
             </div>
           </div>
         </div>
@@ -217,7 +365,7 @@ export default function Home() {
                   Search results for: <span className="font-bold">&ldquo;{searchQuery}&rdquo;</span>
                 </span>
                 <span className="text-green-400/70 text-sm sm:text-base">
-                  ({posts.length} {posts.length === 1 ? 'result' : 'results'})
+                  ({posts.length} posts, {searchResults.length} profiles)
                 </span>
               </div>
               <button
@@ -228,6 +376,43 @@ export default function Home() {
                 <span>Clear search</span>
               </button>
             </div>
+            
+            {/* Profile Results */}
+            {searchResults.length > 0 && (
+              <div className="mt-4 pb-2">
+                <h3 className="text-sm font-bold text-green-400 mb-2">PROFILES_FOUND:</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+                  {searchResults.map((result) => (
+                    <Link
+                      key={result.data.id}
+                      href={`/profile/${result.data.username}`}
+                      className="border border-green-400/30 bg-black/50 p-3 hover:border-green-400 hover:bg-green-400/10 transition-colors"
+                    >
+                      <div className="flex items-center space-x-3">
+                        <div className="w-10 h-10 border border-green-400/50 bg-black/50 flex items-center justify-center flex-shrink-0">
+                          {result.data.photo_url ? (
+                            <img
+                              src={result.data.photo_url}
+                              alt={result.data.username}
+                              className="w-full h-full object-cover"
+                              style={{ filter: 'grayscale(100%) contrast(1.2)' }}
+                            />
+                          ) : (
+                            <User className="w-5 h-5 text-green-400/50" />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="font-bold truncate">@{result.data.username}</div>
+                          {result.data.bio && (
+                            <div className="text-xs text-green-400/70 truncate">{result.data.bio}</div>
+                          )}
+                        </div>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}

@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import Image from 'next/image'
 import { supabase } from '@/lib/supabase'
 import { Terminal, Image as ImageIcon, X } from 'lucide-react'
+import { useAuth } from '@/contexts/AuthContext'
 
 interface PostFormProps {
   onPostCreated: () => void
@@ -16,6 +17,7 @@ interface Command {
 }
 
 export function PostForm({ onPostCreated }: PostFormProps) {
+  const { user } = useAuth()
   const [name, setName] = useState('')
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
@@ -70,6 +72,9 @@ export function PostForm({ onPostCreated }: PostFormProps) {
         addCommand('output', '  exit/quit - Close terminal')
         addCommand('output', '  skip - Skip current step (during post creation)')
         addCommand('output', '  back - Go back to previous step (during post creation)')
+        if (user) {
+          addCommand('output', '  uname - Use your username as the post name (logged in users only)')
+        }
         setCurrentCommand('')
         return
       }
@@ -93,8 +98,21 @@ export function PostForm({ onPostCreated }: PostFormProps) {
 
     switch (currentStep) {
       case 'name':
-        setName(command)
-        addCommand('output', `Name set: ${command}`)
+        // Handle special name commands
+        if (command.toLowerCase() === 'uname' || command.toLowerCase() === 'username') {
+          if (user) {
+            setName(user.name)
+            addCommand('output', `Name set to username: ${user.name}`)
+          } else {
+            addCommand('output', 'Error: You must be logged in to use your username')
+            addCommand('output', 'Please enter a different name or type "skip" for anonymous:')
+            setCurrentCommand('')
+            return
+          }
+        } else {
+          setName(command)
+          addCommand('output', `Name set: ${command}`)
+        }
         setCurrentStep('title')
         addCommand('output', 'Enter post title:')
         break
@@ -167,6 +185,7 @@ export function PostForm({ onPostCreated }: PostFormProps) {
   const handleStepSkip = () => {
     switch (currentStep) {
       case 'name':
+        setName('')
         addCommand('output', 'Name skipped (will be anonymous)')
         setCurrentStep('title')
         addCommand('output', 'Enter post title:')
@@ -186,7 +205,11 @@ export function PostForm({ onPostCreated }: PostFormProps) {
     switch (currentStep) {
       case 'title':
         setCurrentStep('name')
-        addCommand('output', 'Back to name entry. Enter your name (or type "skip"):')
+        if (user) {
+          addCommand('output', 'Back to name entry. Enter your name (or type "skip" for anonymous, "uname" to use username):')
+        } else {
+          addCommand('output', 'Back to name entry. Enter your name (or type "skip"):')
+        }
         break
       case 'content':
         setCurrentStep('title')
@@ -341,8 +364,13 @@ export function PostForm({ onPostCreated }: PostFormProps) {
     addCommand('output', '=== DEVELOPER TERMINAL ===')
     addCommand('output', 'Welcome to the interactive CLI!')
     addCommand('output', 'Type "help" for available commands')
-    addCommand('output', 'Enter your name (or type "skip" for anonymous):')
-  }, [addCommand])
+    if (user) {
+      addCommand('output', `Logged in as: ${user.name}`)
+      addCommand('output', 'Enter your name (or type "skip" for anonymous, "uname" to use your username):')
+    } else {
+      addCommand('output', 'Enter your name (or type "skip" for anonymous):')
+    }
+  }, [addCommand, user])
 
   // Handle Ctrl+` key binding to toggle terminal
   useEffect(() => {
@@ -493,8 +521,11 @@ export function PostForm({ onPostCreated }: PostFormProps) {
           )}
           
           <div className="text-xs text-green-400/70">
-            <p>Available commands: help, clear, skip, back, exit</p>
+            <p>Available commands: help, clear, skip, back, exit{user ? ', uname' : ''}</p>
             <p>Current step: {currentStep.toUpperCase()}</p>
+            {user && (
+              <p className="text-green-400 mt-1">✓ Logged in as: {user.name}</p>
+            )}
           </div>
           </div>
         </div>

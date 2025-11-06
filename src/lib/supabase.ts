@@ -90,6 +90,109 @@ export type Database = {
           created_at?: string
         }
       }
+      users: {
+        Row: {
+          id: string
+          name: string
+          username_hash: string
+          password_hash: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          username_hash: string
+          password_hash: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          username_hash?: string
+          password_hash?: string
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      userinfo: {
+        Row: {
+          id: string
+          user_id: string
+          username: string
+          photo_url: string | null
+          gender: 'male' | 'female' | 'other' | 'prefer_not_to_say' | null
+          email: string | null
+          phone: string | null
+          bio: string | null
+          about: string | null
+          github_url: string | null
+          linkedin_url: string | null
+          twitter_url: string | null
+          instagram_url: string | null
+          facebook_url: string | null
+          address_line1: string | null
+          address_line2: string | null
+          city: string | null
+          state: string | null
+          country: string | null
+          postal_code: string | null
+          is_public: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          username: string
+          photo_url?: string | null
+          gender?: 'male' | 'female' | 'other' | 'prefer_not_to_say' | null
+          email?: string | null
+          phone?: string | null
+          bio?: string | null
+          about?: string | null
+          github_url?: string | null
+          linkedin_url?: string | null
+          twitter_url?: string | null
+          instagram_url?: string | null
+          facebook_url?: string | null
+          address_line1?: string | null
+          address_line2?: string | null
+          city?: string | null
+          state?: string | null
+          country?: string | null
+          postal_code?: string | null
+          is_public?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          username?: string
+          photo_url?: string | null
+          gender?: 'male' | 'female' | 'other' | 'prefer_not_to_say' | null
+          email?: string | null
+          phone?: string | null
+          bio?: string | null
+          about?: string | null
+          github_url?: string | null
+          linkedin_url?: string | null
+          twitter_url?: string | null
+          instagram_url?: string | null
+          facebook_url?: string | null
+          address_line1?: string | null
+          address_line2?: string | null
+          city?: string | null
+          state?: string | null
+          country?: string | null
+          postal_code?: string | null
+          is_public?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+      }
     }
   }
 }
