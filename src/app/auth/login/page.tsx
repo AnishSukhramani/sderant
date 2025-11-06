@@ -108,7 +108,7 @@ export default function LoginPage() {
     try {
       const result = await loginUser(username, password)
       
-      if (result.success && result.user) {
+      if (result.success) {
         setUser(result.user)
         // Show success animation
         setStep(3)

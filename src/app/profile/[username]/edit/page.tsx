@@ -12,6 +12,11 @@ import {
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 import type { UserInfo } from '@/types'
+import type { Database } from '@/lib/supabase'
+
+type UserInfoRow = Database['public']['Tables']['userinfo']['Row']
+type UserInfoInsert = Database['public']['Tables']['userinfo']['Insert']
+type UserInfoUpdate = Database['public']['Tables']['userinfo']['Update']
 
 export default function EditProfilePage() {
   const params = useParams()
@@ -53,6 +58,7 @@ export default function EditProfilePage() {
       return
     }
     fetchProfile()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [username, user])
 
   const fetchProfile = async () => {
@@ -71,13 +77,15 @@ export default function EditProfilePage() {
         
         // If profile doesn't exist, create it
         if (user) {
+          const insertData: UserInfoInsert = {
+            user_id: user.id,
+            username: username,
+            is_public: true
+          }
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const { data: newProfile, error: createError } = await (supabase as any)
             .from('userinfo')
-            .insert({
-              user_id: user.id,
-              username: username,
-              is_public: true
-            })
+            .insert([insertData])
             .select()
             .single()
 
@@ -91,15 +99,16 @@ export default function EditProfilePage() {
       }
 
       // Check if this is the current user's profile
-      if (user && (data as any).user_id !== user.id) {
+      const userInfoData = data as UserInfoRow | null
+      if (user && userInfoData && userInfoData.user_id !== user.id) {
         setError('You can only edit your own profile')
         setTimeout(() => router.push(`/profile/${username}`), 2000)
         return
       }
 
-      setProfile(data as Partial<UserInfo>)
-      if ((data as any).photo_url) {
-        setPhotoPreview((data as any).photo_url)
+      setProfile(userInfoData as Partial<UserInfo>)
+      if (userInfoData && userInfoData.photo_url) {
+        setPhotoPreview(userInfoData.photo_url)
       }
     } catch (err) {
       console.error('Error:', err)
@@ -178,6 +187,7 @@ export default function EditProfilePage() {
       }
 
       // First, check if profile already exists for this user
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data: existingProfile, error: checkError } = await (supabase as any)
         .from('userinfo')
         .select('id')
@@ -185,7 +195,7 @@ export default function EditProfilePage() {
         .single()
 
       // Prepare profile data - convert empty strings to null for optional fields
-      const profileData: any = {
+      const profileData: UserInfoUpdate = {
         user_id: user.id,
         username: username,
         photo_url: photoUrl || null,
@@ -212,8 +222,8 @@ export default function EditProfilePage() {
 
       // Try using the database function first (bypasses RLS)
       try {
-        const { data: functionResult, error: functionError } = await (supabase as any)
-          .rpc('update_userinfo_profile', {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { data: functionResult, error: functionError } = await (supabase as any).rpc('update_userinfo_profile', {
             p_user_id: user.id,
             p_username: username,
             p_photo_url: profileData.photo_url,
@@ -245,13 +255,15 @@ export default function EditProfilePage() {
           console.warn('Function update failed, trying direct update:', functionError)
           throw functionError
         }
-      } catch (functionErr) {
+      } catch {
         // Fallback to direct update/insert
         console.log('Using fallback update method')
         
         if (existingProfile && !checkError) {
           // Don't include id in update payload - we filter by id in the .eq() clause
-          const { id, ...updateData } = profileData
+          const updateData: UserInfoUpdate = { ...profileData }
+          delete updateData.id
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const result = await (supabase as any)
             .from('userinfo')
             .update(updateData)
@@ -261,9 +273,11 @@ export default function EditProfilePage() {
           upsertError = result.error
         } else {
           // Profile doesn't exist, insert new one
+          const insertData: UserInfoInsert = profileData as UserInfoInsert
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const result = await (supabase as any)
             .from('userinfo')
-            .insert(profileData)
+            .insert([insertData])
             .select()
           upsertData = result.data
           upsertError = result.error
@@ -306,7 +320,7 @@ export default function EditProfilePage() {
           } else if (msg.toLowerCase().includes('function') && msg.toLowerCase().includes('does not exist')) {
             errorMsg = 'Database function not found. Run fix-userinfo-rls.sql in Supabase SQL Editor to create it.'
           }
-        } catch (e) {
+        } catch {
           // Use default error message
         }
         
@@ -319,7 +333,7 @@ export default function EditProfilePage() {
         console.warn('No data returned from save operation, verifying...')
         
         // Verify by fetching the profile
-        const { data: verifyData, error: verifyError } = await (supabase as any)
+        const { data: verifyData, error: verifyError } = await supabase
           .from('userinfo')
           .select('*')
           .eq('user_id', user.id)
@@ -466,7 +480,7 @@ export default function EditProfilePage() {
                   label="GENDER"
                   type="select"
                   value={profile.gender || ''}
-                  onChange={(val) => setProfile({ ...profile, gender: val as any })}
+                  onChange={(val) => setProfile({ ...profile, gender: (val || null) as UserInfoRow['gender'] })}
                   options={[
                     { value: '', label: 'Select...' },
                     { value: 'male', label: 'Male' },
@@ -668,7 +682,7 @@ function FormField({
   onChange: (val: string) => void
   placeholder?: string
   type?: string
-  icon?: any
+  icon?: React.ComponentType<{ className?: string }>
   disabled?: boolean
   options?: { value: string; label: string }[]
 }) {

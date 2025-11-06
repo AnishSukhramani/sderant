@@ -9,6 +9,7 @@ import { Terminal } from '@/components/Terminal'
 import { TimeDisplay } from '@/components/TimeDisplay'
 import { TrendingUp, Clock, Search, X, User, LogOut } from 'lucide-react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { useAuth } from '@/contexts/AuthContext'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { Post, TrendingPeriod } from '@/types'
@@ -21,13 +22,11 @@ export default function Home() {
   const [loading, setLoading] = useState(true)
   const [terminalVisible, setTerminalVisible] = useState(false)
   const [showProfileMenu, setShowProfileMenu] = useState(false)
-  const [searchResults, setSearchResults] = useState<{ type: 'post' | 'profile', data: any }[]>([])
-  const [searchingProfiles, setSearchingProfiles] = useState(false)
+  const [searchResults, setSearchResults] = useState<{ type: 'post' | 'profile', data: Post | { username: string; name: string } }[]>([])
 
   const fetchPosts = useCallback(async () => {
     try {
       setLoading(true)
-      setSearchingProfiles(false)
       let query = supabase
         .from('posts')
         .select('*')
@@ -37,19 +36,25 @@ export default function Home() {
         query = query.or(`title.ilike.%${searchQuery}%,name.ilike.%${searchQuery}%,content.ilike.%${searchQuery}%`)
         
         // Also search for profiles
-        setSearchingProfiles(true)
         const { data: profiles } = await supabase
           .from('userinfo')
-          .select('*')
+          .select('username, bio, photo_url')
           .or(`username.ilike.%${searchQuery}%,bio.ilike.%${searchQuery}%`)
           .eq('is_public', true)
           .limit(5)
         
         if (profiles) {
-          const profileResults = profiles.map(p => ({ type: 'profile' as const, data: p }))
+          const profileResults = profiles.map((p: { username: string; bio: string | null; photo_url: string | null }) => ({ 
+            type: 'profile' as const, 
+            data: { 
+              username: p.username, 
+              name: p.username,
+              photo_url: p.photo_url || undefined,
+              bio: p.bio || undefined
+            } 
+          }))
           setSearchResults(profileResults)
         }
-        setSearchingProfiles(false)
       } else {
         setSearchResults([])
       }
@@ -382,34 +387,40 @@ export default function Home() {
               <div className="mt-4 pb-2">
                 <h3 className="text-sm font-bold text-green-400 mb-2">PROFILES_FOUND:</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
-                  {searchResults.map((result) => (
-                    <Link
-                      key={result.data.id}
-                      href={`/profile/${result.data.username}`}
-                      className="border border-green-400/30 bg-black/50 p-3 hover:border-green-400 hover:bg-green-400/10 transition-colors"
-                    >
-                      <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 border border-green-400/50 bg-black/50 flex items-center justify-center flex-shrink-0">
-                          {result.data.photo_url ? (
-                            <img
-                              src={result.data.photo_url}
-                              alt={result.data.username}
-                              className="w-full h-full object-cover"
-                              style={{ filter: 'grayscale(100%) contrast(1.2)' }}
-                            />
-                          ) : (
-                            <User className="w-5 h-5 text-green-400/50" />
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="font-bold truncate">@{result.data.username}</div>
-                          {result.data.bio && (
-                            <div className="text-xs text-green-400/70 truncate">{result.data.bio}</div>
-                          )}
-                        </div>
-                      </div>
-                    </Link>
-                  ))}
+                  {searchResults
+                    .filter((result) => result.type === 'profile')
+                    .map((result) => {
+                      const profileData = result.data as { username: string; name: string; photo_url?: string; bio?: string }
+                      return (
+                        <Link
+                          key={profileData.username}
+                          href={`/profile/${encodeURIComponent(profileData.username)}`}
+                          className="border border-green-400/30 bg-black/50 p-3 hover:border-green-400 hover:bg-green-400/10 transition-colors"
+                        >
+                          <div className="flex items-center space-x-3">
+                            <div className="w-10 h-10 border border-green-400/50 bg-black/50 flex items-center justify-center flex-shrink-0">
+                              {profileData.photo_url ? (
+                                <Image
+                                  src={profileData.photo_url}
+                                  alt={profileData.username}
+                                  width={40}
+                                  height={40}
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                <User className="w-5 h-5 text-green-400/50" />
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="font-bold truncate">@{profileData.username}</div>
+                              {'bio' in profileData && profileData.bio && (
+                                <div className="text-xs text-green-400/70 truncate">{profileData.bio}</div>
+                              )}
+                            </div>
+                          </div>
+                        </Link>
+                      )
+                    })}
                 </div>
               </div>
             )}

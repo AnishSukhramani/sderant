@@ -128,7 +128,7 @@ export default function SignupPage() {
     try {
       const result = await registerUser(name, username, password)
       
-      if (result.success && result.user) {
+      if (result.success) {
         setUser(result.user)
         // Show success animation
         setStep(3)

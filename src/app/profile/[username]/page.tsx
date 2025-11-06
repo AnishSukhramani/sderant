@@ -31,7 +31,7 @@ export default function ProfilePage() {
       setError(null)
 
       // First, try to find by username
-      let { data, error: fetchError } = await (supabase as any)
+      let { data, error: fetchError } = await supabase
         .from('userinfo')
         .select('*')
         .eq('username', username)
@@ -57,7 +57,8 @@ export default function ProfilePage() {
       // If not found by username, try to find by user_id if it's the current user
       if (fetchError && user) {
         // Try to find user by name in users table
-        const { data: userData, error: userError } = await (supabase as any)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { data: userData } = await (supabase as any)
           .from('users')
           .select('id, name')
           .eq('name', username)
@@ -65,6 +66,7 @@ export default function ProfilePage() {
 
         if (userData && userData.id === user.id) {
           // Try to find profile by user_id
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const { data: profileData, error: profileError } = await (supabase as any)
             .from('userinfo')
             .select('*')
@@ -77,13 +79,14 @@ export default function ProfilePage() {
           } else if (profileError) {
             // Profile doesn't exist, try to create it
             try {
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               const { data: newProfile, error: createError } = await (supabase as any)
                 .from('userinfo')
-                .insert({
+                .insert([{
                   user_id: userData.id,
                   username: username,
                   is_public: true
-                })
+                }])
                 .select()
                 .single()
 
@@ -103,6 +106,7 @@ export default function ProfilePage() {
       if (fetchError || !data) {
         // If it's the current user trying to view their own profile that doesn't exist, redirect to edit
         if (user) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const { data: userData } = await (supabase as any)
             .from('users')
             .select('id, name')
@@ -121,7 +125,7 @@ export default function ProfilePage() {
         if (fetchError) {
           try {
             errorMsg = fetchError.message || fetchError.code || JSON.stringify(fetchError) || 'Unknown error'
-          } catch (e) {
+          } catch {
             errorMsg = String(fetchError) || 'Unknown error'
           }
         }
@@ -153,10 +157,11 @@ export default function ProfilePage() {
         return
       }
 
-      setProfile(data as UserInfo)
+      const profileData = data as UserInfo | null
+      setProfile(profileData as UserInfo)
       
       // Check if this is the current user's profile
-      if (user && (data as any).user_id === user.id) {
+      if (user && profileData && profileData.user_id === user.id) {
         setIsOwnProfile(true)
       }
     } catch (err) {
@@ -471,7 +476,7 @@ function InfoField({ label, value }: { label: string; value: string }) {
   )
 }
 
-function SocialLink({ icon: Icon, label, url }: { icon: any; label: string; url: string }) {
+function SocialLink({ icon: Icon, label, url }: { icon: React.ComponentType<{ className?: string }>; label: string; url: string }) {
   return (
     <a
       href={url}

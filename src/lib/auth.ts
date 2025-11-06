@@ -19,7 +19,7 @@ export async function sha256Hash(input: string): Promise<string> {
 }
 
 // Register a new user
-export async function registerUser(name: string, username: string, password: string) {
+export async function registerUser(name: string, username: string, password: string): Promise<{ success: true; user: User } | { success: false; error: string }> {
   try {
     // Hash the username and password
     const usernameHash = await sha256Hash(username)
@@ -37,13 +37,14 @@ export async function registerUser(name: string, username: string, password: str
     }
 
     // Insert new user
-    const { data, error } = await supabase
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data, error } = await (supabase as any)
       .from('users')
-      .insert({
+      .insert([{
         name,
         username_hash: usernameHash,
         password_hash: passwordHash,
-      })
+      }])
       .select()
       .single()
 
@@ -78,7 +79,7 @@ export async function registerUser(name: string, username: string, password: str
 }
 
 // Login user
-export async function loginUser(username: string, password: string) {
+export async function loginUser(username: string, password: string): Promise<{ success: true; user: User } | { success: false; error: string }> {
   try {
     // Hash the username and password
     const usernameHash = await sha256Hash(username)
