@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
 import { PostForm } from '@/components/PostForm'
 import { PostCard } from '@/components/PostCard'
-import { TrendingFilter } from '@/components/TrendingFilter'
 import { Terminal } from '@/components/Terminal'
 import { TimeDisplay } from '@/components/TimeDisplay'
 import { TrendingUp, Clock, Search, X, User, LogOut } from 'lucide-react'
@@ -12,17 +11,36 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useAuth } from '@/contexts/AuthContext'
 import { motion, AnimatePresence } from 'framer-motion'
-import type { Post, TrendingPeriod } from '@/types'
+import type { Post } from '@/types'
+
+type SearchResult = { type: 'profile'; data: { username: string; name: string; photo_url?: string; bio?: string } }
+type DevProfile = {
+  id: string
+  name: string | null
+  username: string | null
+  photoUrl: string | null
+}
+type RawUser = {
+  id: string
+  name: string | null
+  created_at: string
+}
+type RawUserInfo = {
+  user_id: string
+  username: string
+  photo_url: string | null
+}
 
 export default function Home() {
   const { user, logout } = useAuth()
   const [posts, setPosts] = useState<Post[]>([])
-  const [trendingPeriod, setTrendingPeriod] = useState<TrendingPeriod>('all')
   const [searchQuery, setSearchQuery] = useState('')
   const [loading, setLoading] = useState(true)
   const [terminalVisible, setTerminalVisible] = useState(false)
   const [showProfileMenu, setShowProfileMenu] = useState(false)
-  const [searchResults, setSearchResults] = useState<{ type: 'post' | 'profile', data: Post | { username: string; name: string } }[]>([])
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([])
+  const [devs, setDevs] = useState<DevProfile[]>([])
+  const [devsLoading, setDevsLoading] = useState(true)
 
   const fetchPosts = useCallback(async () => {
     try {
@@ -59,15 +77,6 @@ export default function Home() {
         setSearchResults([])
       }
 
-      // Apply time filter
-      if (trendingPeriod === 'hour') {
-        const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString()
-        query = query.gte('created_at', oneHourAgo)
-      } else if (trendingPeriod === 'day') {
-        const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
-        query = query.gte('created_at', oneDayAgo)
-      }
-
       // Order by created_at for search results, or by trending score for normal view
       if (searchQuery.trim()) {
         query = query.order('created_at', { ascending: false })
@@ -102,10 +111,72 @@ export default function Home() {
     } finally {
       setLoading(false)
     }
-  }, [trendingPeriod, searchQuery])
+  }, [searchQuery])
+
+  const fetchDevs = useCallback(async () => {
+    try {
+      setDevsLoading(true)
+
+      const { data: usersDataRaw, error: usersError } = await supabase
+        .from('users')
+        .select('id, name, created_at')
+        .order('created_at', { ascending: false })
+        .limit(8)
+
+      if (usersError) {
+        console.error('Error fetching devs:', usersError)
+        setDevs([])
+        return
+      }
+
+      const usersData = (usersDataRaw ?? []) as RawUser[]
+
+      if (usersData.length === 0) {
+        setDevs([])
+        return
+      }
+
+      const userIds = usersData.map((u) => u.id)
+
+      const { data: profilesDataRaw, error: profilesError } = await supabase
+        .from('userinfo')
+        .select('user_id, username, photo_url')
+        .in('user_id', userIds)
+        .eq('is_public', true)
+
+      if (profilesError) {
+        console.error('Error fetching dev profiles:', profilesError)
+      }
+
+      const profileMap = new Map<string, { username: string; photo_url: string | null }>()
+      const profilesData = (profilesDataRaw ?? []) as RawUserInfo[]
+
+      profilesData.forEach((profile) => {
+        profileMap.set(profile.user_id, { username: profile.username, photo_url: profile.photo_url })
+      })
+
+      const combinedDevs: DevProfile[] = usersData.map((dev) => {
+        const profile = profileMap.get(dev.id)
+        return {
+          id: dev.id,
+          name: dev.name,
+          username: profile?.username ?? null,
+          photoUrl: profile?.photo_url ?? null,
+        }
+      })
+
+      setDevs(combinedDevs)
+    } catch (error) {
+      console.error('Error fetching devs:', error)
+      setDevs([])
+    } finally {
+      setDevsLoading(false)
+    }
+  }, [])
 
   useEffect(() => {
     fetchPosts()
+    fetchDevs()
     
     // Set up real-time subscription
     const channel = supabase
@@ -121,7 +192,7 @@ export default function Home() {
     return () => {
       supabase.removeChannel(channel)
     }
-  }, [fetchPosts])
+  }, [fetchPosts, fetchDevs])
 
   // Close profile menu when clicking outside
   useEffect(() => {
@@ -142,12 +213,12 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-green-400 font-mono">
+    <div className="h-screen overflow-hidden bg-black text-green-400 font-mono flex flex-col">
       {/* Matrix background */}
       <div className="fixed inset-0 matrix-bg pointer-events-none" />
       
       {/* Header */}
-      <header className="relative z-[9998] border-b border-green-400/20 bg-black/80 backdrop-blur-sm">
+      <header className="relative z-[9998] border-b border-green-400/20 bg-black/80 backdrop-blur-sm flex-shrink-0">
         <div className="max-w-6xl mx-auto px-4 py-4 md:py-6">
           {/* Mobile Layout */}
           <div className="flex flex-col space-y-4 md:hidden">
@@ -157,7 +228,7 @@ export default function Home() {
                 <Terminal className="w-6 h-6 md:w-8 md:h-8 text-green-400" />
                 <Link href="/">
                   <h1 className="text-lg md:text-2xl font-bold glitch cursor-pointer">
-                    LIFE_AS_SDE.exe
+                    sudonet.exe
                   </h1>
                 </Link>
               </div>
@@ -246,13 +317,6 @@ export default function Home() {
               </div>
             </div>
             
-            {/* Trending Filter - Full Width on Mobile */}
-            <div className="w-full">
-              <TrendingFilter 
-                period={trendingPeriod} 
-                onPeriodChange={setTrendingPeriod}
-              />
-            </div>
           </div>
           
           {/* Desktop Layout */}
@@ -261,7 +325,7 @@ export default function Home() {
               <Terminal className="w-8 h-8 text-green-400" />
               <Link href="/">
                 <h1 className="text-2xl font-bold glitch cursor-pointer">
-                  LIFE_AS_SDE.exe
+                  sudonet.exe
                 </h1>
               </Link>
             </div>
@@ -289,10 +353,6 @@ export default function Home() {
                 </div>
               </div>
               
-              <TrendingFilter 
-                period={trendingPeriod} 
-                onPeriodChange={setTrendingPeriod}
-              />
               <button
                 onClick={() => setTerminalVisible(!terminalVisible)}
                 className="px-4 py-2 border border-green-400 hover:bg-green-400 hover:text-black transition-colors"
@@ -361,7 +421,7 @@ export default function Home() {
 
       {/* Search Results Indicator */}
       {searchQuery.trim() && (
-        <div className="relative z-10 border-b border-green-400/20 bg-black/60 backdrop-blur-sm">
+        <div className="relative z-10 border-b border-green-400/20 bg-black/60 backdrop-blur-sm flex-shrink-0">
           <div className="max-w-6xl mx-auto px-4 py-3">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
               <div className="flex items-center space-x-2">
@@ -429,9 +489,9 @@ export default function Home() {
       )}
 
       {/* Content Layout - Responsive */}
-      <div className="flex flex-col lg:flex-row min-h-screen">
+      <div className="flex flex-col lg:flex-row flex-1 overflow-hidden">
         {/* CLI Metrics - Mobile: Full width, Desktop: 20% sidebar */}
-        <div className="w-full lg:w-1/5 bg-black/20 border-b lg:border-b-0 lg:border-r border-transparent p-4">
+        <div className="w-full lg:w-1/5 bg-black/20 border-b lg:border-b-0 lg:border-r border-transparent p-4 flex-shrink-0">
           <div className="lg:sticky lg:top-20">
             <div className="bg-black/80 backdrop-blur-sm p-4 font-mono text-sm">
               <div className="flex items-center space-x-2 mb-3">
@@ -483,11 +543,71 @@ export default function Home() {
               </div>
               </div>
             </div>
+
+            <div className="mt-6 bg-black/80 backdrop-blur-sm p-4 font-mono text-sm border border-green-400/10">
+              <div className="flex items-center space-x-2 mb-3">
+                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                <span className="text-green-400 font-bold">ACTIVE_DEVS.exe</span>
+              </div>
+
+              <div className="space-y-3">
+                {devsLoading ? (
+                  <div className="space-y-2">
+                    {[...Array(4)].map((_, idx) => (
+                      <div key={`dev-skeleton-${idx}`} className="flex items-center space-x-3 border border-green-400/10 p-2 animate-pulse">
+                        <div className="w-10 h-10 rounded-full bg-green-400/10" />
+                        <div className="flex-1 space-y-1">
+                          <div className="h-3 bg-green-400/10 w-2/3" />
+                          <div className="h-3 bg-green-400/10 w-1/3" />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : devs.length === 0 ? (
+                  <div className="border border-green-400/10 bg-black/60 p-3 text-xs text-green-400/60">
+                    No devs online yet. Check back soon.
+                  </div>
+                ) : (
+                  devs.map((dev) => (
+                    <Link
+                      key={dev.id}
+                      href={`/profile/${encodeURIComponent(dev.username ?? dev.id)}`}
+                      className="flex items-center space-x-3 border border-green-400/10 hover:border-green-400/40 hover:bg-green-400/5 transition-colors p-2"
+                    >
+                      <div className="w-10 h-10 rounded-full border border-green-400/40 bg-gradient-to-br from-green-500/20 to-green-400/10 flex items-center justify-center overflow-hidden">
+                        {dev.photoUrl ? (
+                          <Image
+                            src={dev.photoUrl}
+                            alt={dev.username ?? dev.name ?? 'dev avatar'}
+                            width={40}
+                            height={40}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <span className="text-green-300 font-bold">
+                            {(dev.name || dev.username || 'DEV')
+                              .split(' ')
+                              .map((part) => part[0])
+                              .join('')
+                              .slice(0, 2)
+                              .toUpperCase()}
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-bold text-green-100 truncate">{dev.name || dev.username || 'Unknown Dev'}</p>
+                        <p className="text-xs text-green-400/70 truncate">@{dev.username ?? dev.id.slice(0, 8)}</p>
+                      </div>
+                    </Link>
+                  ))
+                )}
+              </div>
+            </div>
           </div>
         </div>
 
         {/* Main Content - 80% */}
-        <main className="flex-1 relative z-10 px-4 py-8 pb-32">
+        <main className="flex-1 relative z-10 px-4 py-6 flex flex-col overflow-hidden">
           {/* Terminal Info */}
           {terminalVisible && (
             <div className="mb-8 border border-green-400 bg-black/90 p-4">
@@ -526,10 +646,10 @@ export default function Home() {
           )}
 
           {/* Posts Layout - Responsive */}
-          <div className="flex flex-col xl:flex-row gap-4">
+          <div className="flex flex-col xl:flex-row gap-4 flex-1 overflow-hidden min-h-0">
             {/* Left Side - Trending Posts */}
-            <div className="w-full xl:w-1/2">
-              <div className="mb-4">
+            <div className="w-full xl:w-1/2 flex flex-col min-h-0">
+              <div className="mb-4 flex-shrink-0">
                 <h2 className="text-lg font-bold text-green-400 flex items-center space-x-2">
                   <TrendingUp className="w-5 h-5" />
                   <span>TRENDING_POSTS.exe</span>
@@ -537,7 +657,7 @@ export default function Home() {
                 <p className="text-sm text-green-400/70">All-time trending content</p>
               </div>
               
-              <div className="space-y-4 max-h-[calc(100vh-200px)] overflow-y-auto scrollbar-hide">
+              <div className="space-y-4 flex-1 overflow-y-auto scrollbar-hide pr-2 pb-24">
                 {loading ? (
                   <div className="text-center py-8">
                     <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-green-400"></div>
@@ -565,8 +685,8 @@ export default function Home() {
             </div>
 
             {/* Right Side - Recent Posts */}
-            <div className="w-full xl:w-1/2">
-              <div className="mb-4">
+            <div className="w-full xl:w-1/2 flex flex-col min-h-0">
+              <div className="mb-4 flex-shrink-0">
                 <h2 className="text-lg font-bold text-green-400 flex items-center space-x-2">
                   <Clock className="w-5 h-5" />
                   <span>RECENT_POSTS.exe</span>
@@ -574,7 +694,7 @@ export default function Home() {
                 <p className="text-sm text-green-400/70">Latest community activity</p>
               </div>
               
-              <div className="space-y-4 max-h-[calc(100vh-200px)] overflow-y-auto scrollbar-hide">
+              <div className="space-y-4 flex-1 overflow-y-auto scrollbar-hide pr-2 pb-24">
                 {loading ? (
                   <div className="text-center py-8">
                     <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-green-400"></div>
@@ -601,14 +721,14 @@ export default function Home() {
       </div>
 
       {/* Footer */}
-      <footer className="relative z-10 border-t border-green-400/20 bg-black/80 backdrop-blur-sm mt-16 mb-20">
+      {/* <footer className="relative z-10 border-t border-green-400/20 bg-black/80 backdrop-blur-sm mt-16 mb-20">
         <div className="max-w-6xl mx-auto px-4 py-6">
           <div className="flex items-center justify-between text-sm text-green-400/70">
             <p>Built with Next.js + Supabase | Anonymous Tech Discussions</p>
             <p>No cookies, no tracking, just pure developer chaos</p>
           </div>
         </div>
-      </footer>
+      </footer> */}
 
       {/* Post Form - Fixed at bottom with highest z-index */}
       <PostForm onPostCreated={handleNewPost} />

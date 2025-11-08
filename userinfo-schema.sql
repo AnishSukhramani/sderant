@@ -2,7 +2,7 @@
 -- Connected to users table via user_id foreign key
 CREATE TABLE IF NOT EXISTS userinfo (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
   username TEXT NOT NULL UNIQUE, -- Denormalized for easier lookup
   photo_url TEXT,
   gender TEXT CHECK (gender IN ('male', 'female', 'other', 'prefer_not_to_say')),
