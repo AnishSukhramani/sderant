@@ -7,6 +7,8 @@ import Link from 'next/link'
 import { Terminal, User, Lock, Eye, EyeOff, Loader2, CheckCircle2, AlertCircle } from 'lucide-react'
 import { registerUser } from '@/lib/auth'
 import { useAuth } from '@/contexts/AuthContext'
+import { ArchetypeSelector } from '@/components/ArchetypeSelector'
+import type { ArchetypeId } from '@/types'
 
 export default function SignupPage() {
   const router = useRouter()
@@ -15,6 +17,7 @@ export default function SignupPage() {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
+  const [archetype, setArchetype] = useState<ArchetypeId | null>(null)
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -114,6 +117,10 @@ export default function SignupPage() {
       setError('Passwords do not match')
       return false
     }
+    if (!archetype) {
+      setError('Select your archetype to continue')
+      return false
+    }
     return true
   }
 
@@ -126,7 +133,7 @@ export default function SignupPage() {
     setIsSubmitting(true)
 
     try {
-      const result = await registerUser(name, username, password)
+      const result = await registerUser(name, username, password, archetype!)
       
       if (result.success) {
         setUser(result.user)
@@ -381,6 +388,23 @@ export default function SignupPage() {
                   <p className="text-xs text-green-400/50 mt-1">
                     Min 3 characters. Will be hashed with SHA-256.
                   </p>
+                </div>
+
+                {/* Archetype selection */}
+                <div>
+                  <label className="block text-sm mb-2 text-green-400/70">
+                    <span className="text-green-400">$</span> ASSIGNED_ARCHETYPE:
+                  </label>
+                  <p className="text-xs text-green-400/50">
+                    Choose the crew that represents your current build path.
+                  </p>
+                  <ArchetypeSelector
+                    value={archetype}
+                    onChange={setArchetype}
+                    className="mt-3"
+                    layout="grid"
+                    disabled={isSubmitting}
+                  />
                 </div>
 
                 {/* Password field */}

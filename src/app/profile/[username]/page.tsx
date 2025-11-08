@@ -12,6 +12,8 @@ import {
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 import type { UserInfo } from '@/types'
+import { ArchetypeBadge } from '@/components/ArchetypeBadge'
+import { getArchetypeMeta } from '@/lib/archetypes'
 
 export default function ProfilePage() {
   const params = useParams()
@@ -35,27 +37,28 @@ export default function ProfilePage() {
         .from('userinfo')
         .select('*')
         .eq('username', username)
-        .single()
+        .maybeSingle()
 
       // Log detailed error for debugging - stringify to see actual contents
-      if (fetchError) {
+      if (fetchError && fetchError.code !== 'PGRST116') {
         try {
           const errorStr = JSON.stringify(fetchError, null, 2)
-          console.error('Profile fetch error (stringified):', errorStr)
-          console.error('Profile fetch error (raw):', fetchError)
-          console.error('Error type:', typeof fetchError)
-          console.error('Error keys:', Object.keys(fetchError || {}))
-          console.error('Error message:', fetchError?.message)
-          console.error('Error code:', fetchError?.code)
-          console.error('Error details:', fetchError?.details)
+          if (process.env.NODE_ENV !== 'production') {
+            console.debug('Profile fetch error (stringified):', errorStr)
+            console.debug('Profile fetch error (raw):', fetchError)
+          }
         } catch (e) {
-          console.error('Could not stringify error:', e)
-          console.error('Raw error object:', fetchError)
+          if (process.env.NODE_ENV !== 'production') {
+            console.debug('Could not stringify profile fetch error:', e)
+            console.debug('Raw error object:', fetchError)
+          }
         }
       }
 
+      const shouldFallbackLookup = (!data || (fetchError && fetchError.code !== 'PGRST116')) && user
+
       // If not found by username, try to find by user_id if it's the current user
-      if (fetchError && user) {
+      if (shouldFallbackLookup) {
         // Try to find user by name in users table
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const { data: userData } = await (supabase as any)
@@ -129,15 +132,23 @@ export default function ProfilePage() {
             errorMsg = String(fetchError) || 'Unknown error'
           }
         }
-        
-        console.error('Error fetching profile - Final:', {
-          username,
-          error: fetchError,
-          errorString: JSON.stringify(fetchError),
-          errorMsg,
-          hasData: !!data,
-          errorType: typeof fetchError
-        })
+
+        if (fetchError && fetchError.code !== 'PGRST116') {
+          console.error('Error fetching profile - Final:', {
+            username,
+            error: fetchError,
+            errorString: JSON.stringify(fetchError),
+            errorMsg,
+            hasData: !!data,
+            errorType: typeof fetchError
+          })
+        } else if (process.env.NODE_ENV !== 'production') {
+          console.debug('Profile not found (non-critical):', {
+            username,
+            error: fetchError?.code,
+            hasData: !!data,
+          })
+        }
         
         // Check for common error types
         const errorStr = errorMsg.toLowerCase()
@@ -242,6 +253,8 @@ export default function ProfilePage() {
     )
   }
 
+  const archetypeMeta = profile.archetype ? getArchetypeMeta(profile.archetype) : null
+
   return (
     <div className="min-h-screen bg-black text-green-400 font-mono">
       {/* Matrix background */}
@@ -304,6 +317,11 @@ export default function ProfilePage() {
                 <div>STATUS: <span className="text-green-400">ACTIVE</span></div>
               </div>
             </div>
+            {archetypeMeta && (
+              <div className="mt-4 max-w-md">
+                <ArchetypeBadge archetype={profile.archetype} variant="profile" />
+              </div>
+            )}
           </div>
 
           {/* Document Body */}
@@ -321,6 +339,17 @@ export default function ProfilePage() {
                   <div className="space-y-3">
                     <InfoField label="NAME" value={profile.username} />
                     <InfoField label="USERNAME" value={`@${profile.username}`} />
+                    {archetypeMeta && (
+                      <div className="grid grid-cols-3 gap-4 items-center">
+                        <div className="text-green-400/70 text-sm">ARCHETYPE:</div>
+                        <div className="col-span-2 flex items-center gap-2">
+                          <ArchetypeBadge archetype={profile.archetype} variant="label" />
+                          <span className="text-[0.65rem] uppercase tracking-wide text-green-400/50">
+                            {archetypeMeta.description}
+                          </span>
+                        </div>
+                      </div>
+                    )}
                     {profile.gender && (
                       <InfoField label="GENDER" value={profile.gender.toUpperCase().replace(/_/g, ' ')} />
                     )}

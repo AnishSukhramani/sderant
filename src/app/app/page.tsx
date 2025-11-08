@@ -6,19 +6,23 @@ import { PostForm } from '@/components/PostForm'
 import { PostCard } from '@/components/PostCard'
 import { Terminal } from '@/components/Terminal'
 import { TimeDisplay } from '@/components/TimeDisplay'
+import { ArchetypeBadge } from '@/components/ArchetypeBadge'
+import { getArchetypeMeta } from '@/lib/archetypes'
 import { TrendingUp, Clock, Search, X, User, LogOut } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useAuth } from '@/contexts/AuthContext'
 import { motion, AnimatePresence } from 'framer-motion'
-import type { Post } from '@/types'
+import type { Database } from '@/lib/database.types'
+import type { ArchetypeId, Post } from '@/types'
 
-type SearchResult = { type: 'profile'; data: { username: string; name: string; photo_url?: string; bio?: string } }
+type SearchResult = { type: 'profile'; data: { username: string; name: string; photo_url?: string; bio?: string; archetype?: ArchetypeId | null } }
 type DevProfile = {
   id: string
   name: string | null
   username: string | null
   photoUrl: string | null
+  archetype: ArchetypeId | null
 }
 type RawUser = {
   id: string
@@ -29,7 +33,15 @@ type RawUserInfo = {
   user_id: string
   username: string
   photo_url: string | null
+  archetype: string | null
 }
+
+const normalizeArchetypeId = (value: string | null): ArchetypeId | null => {
+  if (!value) return null
+  return getArchetypeMeta(value as ArchetypeId) ? (value as ArchetypeId) : null
+}
+
+type RawPost = Database['public']['Tables']['posts']['Row']
 
 export default function Home() {
   const { user, logout } = useAuth()
@@ -41,6 +53,7 @@ export default function Home() {
   const [searchResults, setSearchResults] = useState<SearchResult[]>([])
   const [devs, setDevs] = useState<DevProfile[]>([])
   const [devsLoading, setDevsLoading] = useState(true)
+  const [authorArchetypes, setAuthorArchetypes] = useState<Record<string, ArchetypeId>>({})
 
   const fetchPosts = useCallback(async () => {
     try {
@@ -56,21 +69,25 @@ export default function Home() {
         // Also search for profiles
         const { data: profiles } = await supabase
           .from('userinfo')
-          .select('username, bio, photo_url')
+          .select('username, bio, photo_url, archetype')
           .or(`username.ilike.%${searchQuery}%,bio.ilike.%${searchQuery}%`)
           .eq('is_public', true)
           .limit(5)
         
         if (profiles) {
-          const profileResults = profiles.map((p: { username: string; bio: string | null; photo_url: string | null }) => ({ 
-            type: 'profile' as const, 
-            data: { 
-              username: p.username, 
-              name: p.username,
-              photo_url: p.photo_url || undefined,
-              bio: p.bio || undefined
-            } 
-          }))
+          const profileResults = profiles.map((p: { username: string; bio: string | null; photo_url: string | null; archetype: string | null }) => {
+            const archetypeId = normalizeArchetypeId(p.archetype)
+            return {
+              type: 'profile' as const,
+              data: {
+                username: p.username,
+                name: p.username,
+                photo_url: p.photo_url || undefined,
+                bio: p.bio || undefined,
+                archetype: archetypeId ?? undefined,
+              },
+            }
+          })
           setSearchResults(profileResults)
         }
       } else {
@@ -96,15 +113,79 @@ export default function Home() {
           return
         }
       } else {
+        const rawPosts = (data ?? []) as RawPost[]
+
         // Sort by trending score (street_creds + comments + views) only if not searching
-        const sortedPosts = searchQuery.trim() 
-          ? data || []
-          : data?.sort((a: Post, b: Post) => {
-              const scoreA = a.street_creds_count + a.comments_count + a.views_count
-              const scoreB = b.street_creds_count + b.comments_count + b.views_count
+        const sortedPosts = searchQuery.trim()
+          ? rawPosts
+          : [...rawPosts].sort((a, b) => {
+              const scoreA = (a.street_creds_count ?? 0) + (a.comments_count ?? 0) + (a.views_count ?? 0)
+              const scoreB = (b.street_creds_count ?? 0) + (b.comments_count ?? 0) + (b.views_count ?? 0)
               return scoreB - scoreA
-            }) || []
-        setPosts(sortedPosts)
+            })
+
+        const sanitizedPosts: Post[] = sortedPosts.map((post) => ({
+          id: post.id,
+          name: post.name,
+          title: post.title,
+          content: post.content,
+          image_url: post.image_url,
+          created_at: post.created_at ?? new Date().toISOString(),
+          updated_at: post.updated_at ?? post.created_at ?? new Date().toISOString(),
+          street_creds_count: post.street_creds_count ?? 0,
+          comments_count: post.comments_count ?? 0,
+          views_count: post.views_count ?? 0,
+        }))
+
+        setPosts(sanitizedPosts)
+
+        const authorHandles = Array.from(
+          new Set(
+            sanitizedPosts
+              .map((post) => post.name?.trim())
+              .filter((name): name is string => Boolean(name))
+          )
+        )
+
+        if (authorHandles.length > 0 && process.env.NEXT_PUBLIC_SUPABASE_URL) {
+          try {
+            const { data: authorProfiles, error: authorProfilesError } = await supabase
+              .from('userinfo')
+              .select('username, archetype')
+              .in('username', authorHandles)
+              .eq('is_public', true)
+
+            if (!authorProfilesError && authorProfiles) {
+              const nextMap: Record<string, ArchetypeId> = {}
+              ;(authorProfiles as { username: string; archetype: string | null }[]).forEach((profile) => {
+                const archetypeId = normalizeArchetypeId(profile.archetype)
+                if (profile.username && archetypeId) {
+                  nextMap[profile.username] = archetypeId
+                }
+              })
+
+              setAuthorArchetypes((prev) => {
+                const updated = { ...prev }
+                authorHandles.forEach((username) => {
+                  if (nextMap[username]) {
+                    updated[username] = nextMap[username]
+                  } else {
+                    delete updated[username]
+                  }
+                })
+                return updated
+              })
+            } else if (authorProfilesError) {
+              if (process.env.NODE_ENV !== 'production') {
+                console.debug('Skipping archetype hydration (profiles query)', authorProfilesError)
+              }
+            }
+          } catch (profileFetchErr) {
+            if (process.env.NODE_ENV !== 'production') {
+              console.debug('Skipping archetype hydration (exception)', profileFetchErr)
+            }
+          }
+        }
       }
     } catch (error) {
       console.error('Error:', error)
@@ -117,6 +198,11 @@ export default function Home() {
     try {
       setDevsLoading(true)
 
+      if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+        setDevs([])
+        return
+      }
+
       const { data: usersDataRaw, error: usersError } = await supabase
         .from('users')
         .select('id, name, created_at')
@@ -124,7 +210,9 @@ export default function Home() {
         .limit(8)
 
       if (usersError) {
-        console.error('Error fetching devs:', usersError)
+        if (process.env.NODE_ENV !== 'production') {
+          console.debug('Skipping dev roster hydration (users query)', usersError)
+        }
         setDevs([])
         return
       }
@@ -140,34 +228,45 @@ export default function Home() {
 
       const { data: profilesDataRaw, error: profilesError } = await supabase
         .from('userinfo')
-        .select('user_id, username, photo_url')
+        .select('user_id, username, photo_url, archetype')
         .in('user_id', userIds)
         .eq('is_public', true)
 
       if (profilesError) {
-        console.error('Error fetching dev profiles:', profilesError)
+        if (process.env.NODE_ENV !== 'production') {
+          console.debug('Skipping dev roster hydration (profiles query)', profilesError)
+        }
       }
 
-      const profileMap = new Map<string, { username: string; photo_url: string | null }>()
+      const profileMap = new Map<string, { username: string; photo_url: string | null; archetype: ArchetypeId | null }>()
       const profilesData = (profilesDataRaw ?? []) as RawUserInfo[]
 
       profilesData.forEach((profile) => {
-        profileMap.set(profile.user_id, { username: profile.username, photo_url: profile.photo_url })
+        profileMap.set(profile.user_id, {
+          username: profile.username,
+          photo_url: profile.photo_url,
+          archetype: normalizeArchetypeId(profile.archetype),
+        })
       })
 
-      const combinedDevs: DevProfile[] = usersData.map((dev) => {
-        const profile = profileMap.get(dev.id)
-        return {
-          id: dev.id,
-          name: dev.name,
-          username: profile?.username ?? null,
-          photoUrl: profile?.photo_url ?? null,
-        }
-      })
+      const combinedDevs: DevProfile[] = usersData
+        .filter((dev) => profileMap.has(dev.id))
+        .map((dev) => {
+          const profile = profileMap.get(dev.id)!
+          return {
+            id: dev.id,
+            name: dev.name,
+            username: profile.username ?? null,
+            photoUrl: profile.photo_url ?? null,
+            archetype: profile.archetype ?? null,
+          }
+        })
 
       setDevs(combinedDevs)
     } catch (error) {
-      console.error('Error fetching devs:', error)
+      if (process.env.NODE_ENV !== 'production') {
+        console.debug('Skipping dev roster hydration (exception)', error)
+      }
       setDevs([])
     } finally {
       setDevsLoading(false)
@@ -450,7 +549,7 @@ export default function Home() {
                   {searchResults
                     .filter((result) => result.type === 'profile')
                     .map((result) => {
-                      const profileData = result.data as { username: string; name: string; photo_url?: string; bio?: string }
+                      const profileData = result.data as { username: string; name: string; photo_url?: string; bio?: string; archetype?: ArchetypeId | null }
                       return (
                         <Link
                           key={profileData.username}
@@ -472,7 +571,12 @@ export default function Home() {
                               )}
                             </div>
                             <div className="flex-1 min-w-0">
-                              <div className="font-bold truncate">@{profileData.username}</div>
+                              <div className="flex items-center gap-2">
+                                <div className="font-bold truncate">@{profileData.username}</div>
+                                {profileData.archetype && (
+                                  <ArchetypeBadge archetype={profileData.archetype} className="scale-75" />
+                                )}
+                              </div>
                               {'bio' in profileData && profileData.bio && (
                                 <div className="text-xs text-green-400/70 truncate">{profileData.bio}</div>
                               )}
@@ -492,7 +596,7 @@ export default function Home() {
       <div className="flex flex-col lg:flex-row flex-1 overflow-hidden">
         {/* CLI Metrics - Mobile: Full width, Desktop: 20% sidebar */}
         <div className="w-full lg:w-1/5 bg-black/20 border-b lg:border-b-0 lg:border-r border-transparent p-4 flex-shrink-0">
-          <div className="lg:sticky lg:top-20">
+          <div className="lg:sticky ">
             <div className="bg-black/80 backdrop-blur-sm p-4 font-mono text-sm">
               <div className="flex items-center space-x-2 mb-3">
                 <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
@@ -595,7 +699,12 @@ export default function Home() {
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="font-bold text-green-100 truncate">{dev.name || dev.username || 'Unknown Dev'}</p>
+                        <div className="flex items-center gap-2">
+                          <p className="font-bold text-green-100 truncate">{dev.name || dev.username || 'Unknown Dev'}</p>
+                          {dev.archetype && (
+                            <ArchetypeBadge archetype={dev.archetype} className="scale-75" />
+                          )}
+                        </div>
                         <p className="text-xs text-green-400/70 truncate">@{dev.username ?? dev.id.slice(0, 8)}</p>
                       </div>
                     </Link>
@@ -678,7 +787,11 @@ export default function Home() {
                     })
                     .slice(0, 10)
                     .map((post) => (
-                      <PostCard key={post.id} post={post} />
+                      <PostCard
+                        key={post.id}
+                        post={post}
+                        archetype={post.name ? authorArchetypes[post.name] : undefined}
+                      />
                     ))
                 )}
               </div>
@@ -711,7 +824,11 @@ export default function Home() {
                     .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
                     .slice(0, 10)
                     .map((post) => (
-                      <PostCard key={`recent-${post.id}`} post={post} />
+                      <PostCard
+                        key={`recent-${post.id}`}
+                        post={post}
+                        archetype={post.name ? authorArchetypes[post.name] : undefined}
+                      />
                     ))
                 )}
               </div>

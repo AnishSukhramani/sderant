@@ -7,16 +7,25 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { 
   Terminal, User, Mail, Phone, MapPin, Github, Linkedin, 
-  Twitter, Instagram, Facebook, Upload, X, Loader2, AlertCircle, ArrowLeft, Save
+  Twitter, Instagram, Facebook, Upload, X, Loader2, AlertCircle, ArrowLeft, Save, Sparkles
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 import type { UserInfo } from '@/types'
-import type { Database } from '@/lib/supabase'
+import type { Database } from '@/lib/database.types'
+import { ArchetypeSelector } from '@/components/ArchetypeSelector'
 
 type UserInfoRow = Database['public']['Tables']['userinfo']['Row']
 type UserInfoInsert = Database['public']['Tables']['userinfo']['Insert']
 type UserInfoUpdate = Database['public']['Tables']['userinfo']['Update']
+
+const GENDER_OPTIONS = ['male', 'female', 'other', 'prefer_not_to_say'] as const
+type GenderOption = (typeof GENDER_OPTIONS)[number]
+
+const toGenderValue = (val: string): GenderOption | null => {
+  if (!val) return null
+  return GENDER_OPTIONS.includes(val as GenderOption) ? (val as GenderOption) : null
+}
 
 export default function EditProfilePage() {
   const params = useParams()
@@ -44,6 +53,7 @@ export default function EditProfilePage() {
     state: '',
     country: '',
     postal_code: '',
+    archetype: null,
   })
   const [photo, setPhoto] = useState<File | null>(null)
   const [photoPreview, setPhotoPreview] = useState<string | null>(null)
@@ -70,12 +80,17 @@ export default function EditProfilePage() {
         .from('userinfo')
         .select('*')
         .eq('username', username)
-        .single()
+        .maybeSingle()
 
-      if (fetchError) {
-        console.error('Error fetching profile:', fetchError)
-        
-        // If profile doesn't exist, create it
+      if (fetchError && fetchError.code !== 'PGRST116') {
+        if (process.env.NODE_ENV !== 'production') {
+          console.debug('Error fetching profile:', fetchError)
+        }
+      }
+
+      // Check if this is the current user's profile
+      const userInfoData = data as UserInfoRow | null
+      if (!userInfoData) {
         if (user) {
           const insertData: UserInfoInsert = {
             user_id: user.id,
@@ -98,8 +113,6 @@ export default function EditProfilePage() {
         return
       }
 
-      // Check if this is the current user's profile
-      const userInfoData = data as UserInfoRow | null
       if (user && userInfoData && userInfoData.user_id !== user.id) {
         setError('You can only edit your own profile')
         setTimeout(() => router.push(`/profile/${username}`), 2000)
@@ -215,6 +228,7 @@ export default function EditProfilePage() {
         state: profile.state?.trim() || null,
         country: profile.country?.trim() || null,
         postal_code: profile.postal_code?.trim() || null,
+        archetype: profile.archetype || null,
         is_public: profile.is_public !== undefined ? profile.is_public : true,
       }
 
@@ -243,6 +257,7 @@ export default function EditProfilePage() {
             p_state: profileData.state,
             p_country: profileData.country,
             p_postal_code: profileData.postal_code,
+            p_archetype: profileData.archetype,
             p_is_public: profileData.is_public,
           })
 
@@ -480,7 +495,7 @@ export default function EditProfilePage() {
                   label="GENDER"
                   type="select"
                   value={profile.gender || ''}
-                  onChange={(val) => setProfile({ ...profile, gender: (val || null) as UserInfoRow['gender'] })}
+                  onChange={(val) => setProfile({ ...profile, gender: toGenderValue(val) })}
                   options={[
                     { value: '', label: 'Select...' },
                     { value: 'male', label: 'Male' },
@@ -506,6 +521,22 @@ export default function EditProfilePage() {
                   icon={Phone}
                 />
               </div>
+            </section>
+
+            {/* Archetype */}
+            <section>
+              <h2 className="text-xl font-bold mb-4 flex items-center space-x-2">
+                <Sparkles className="w-5 h-5" />
+                <span>OPERATIVE_ARCHETYPE</span>
+              </h2>
+              <p className="text-xs text-green-400/60 -mt-2 mb-3">
+                Equip the archetype that best matches your current mission profile.
+              </p>
+              <ArchetypeSelector
+                value={profile.archetype ?? null}
+                onChange={(val) => setProfile({ ...profile, archetype: val })}
+                disabled={saving}
+              />
             </section>
 
             {/* Bio */}

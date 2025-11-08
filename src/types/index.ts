@@ -1,3 +1,5 @@
+export type ArchetypeId = 'corpo' | 'mercenary' | 'fixer' | 'nomad' | 'street_kid' | 'netrunner'
+
 export type Post = {
   id: string
   name: string | null
@@ -55,6 +57,7 @@ export type UserInfo = {
   state: string | null
   country: string | null
   postal_code: string | null
+  archetype: ArchetypeId | null
   is_public: boolean
   created_at: string
   updated_at: string

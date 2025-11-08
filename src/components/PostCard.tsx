@@ -3,7 +3,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
 import Image from 'next/image'
 import { supabase } from '@/lib/supabase'
-import type { Post, Comment } from '@/types'
+import type { Post, Comment, ArchetypeId } from '@/types'
 import { getUserIdentifier, formatTimeAgo } from '@/lib/utils'
 import { 
   MessageCircle, 
@@ -13,12 +13,14 @@ import {
   ChevronUp,
   ExternalLink
 } from 'lucide-react'
+import { ArchetypeBadge } from './ArchetypeBadge'
 
 interface PostCardProps {
   post: Post
+  archetype?: ArchetypeId | null
 }
 
-export function PostCard({ post }: PostCardProps) {
+export function PostCard({ post, archetype }: PostCardProps) {
   const [comments, setComments] = useState<Comment[]>([])
   const [showComments, setShowComments] = useState(false)
   const [newComment, setNewComment] = useState('')
@@ -196,9 +198,11 @@ export function PostCard({ post }: PostCardProps) {
             </div>
             <div>
               <h3 className="font-bold text-base">{post.title}</h3>
-              <p className="text-xs text-green-400/70">
-                by {post.name || 'Anonymous Developer'} • {formatTimeAgo(post.created_at)}
-              </p>
+              <div className="text-xs text-green-400/70 flex items-center gap-2">
+                {archetype && <ArchetypeBadge archetype={archetype} className="scale-90" />}
+                <span>by {post.name || 'Anonymous Developer'}</span>
+                <span>• {formatTimeAgo(post.created_at)}</span>
+              </div>
             </div>
           </div>
           

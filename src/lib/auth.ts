@@ -1,4 +1,5 @@
-// Authentication utilities with SHA-256 hashing
+import type { ArchetypeId } from '@/types'
+import type { Database } from './database.types'
 import { supabase } from './supabase'
 
 export interface User {
@@ -19,7 +20,12 @@ export async function sha256Hash(input: string): Promise<string> {
 }
 
 // Register a new user
-export async function registerUser(name: string, username: string, password: string): Promise<{ success: true; user: User } | { success: false; error: string }> {
+export async function registerUser(
+  name: string,
+  username: string,
+  password: string,
+  archetype: ArchetypeId
+): Promise<{ success: true; user: User } | { success: false; error: string }> {
   try {
     // Hash the username and password
     const usernameHash = await sha256Hash(username)
@@ -37,10 +43,9 @@ export async function registerUser(name: string, username: string, password: str
     }
 
     // Insert new user
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data, error } = await (supabase as any)
+    const { data, error } = await supabase
       .from('users')
-      .insert([{
+      .insert<Database['public']['Tables']['users']['Insert']>([{
         name,
         username_hash: usernameHash,
         password_hash: passwordHash,
@@ -53,13 +58,33 @@ export async function registerUser(name: string, username: string, password: str
       return { success: false, error: error.message }
     }
 
+    const createdAt = data.created_at ?? new Date().toISOString()
+
+    // Create initial profile entry with selected archetype
+    try {
+      const { error: profileError } = await supabase
+        .from('userinfo')
+        .insert<Database['public']['Tables']['userinfo']['Insert']>([{
+          user_id: data.id,
+          username,
+          archetype,
+          is_public: true,
+        }])
+
+      if (profileError) {
+        console.error('Profile bootstrap error:', profileError)
+      }
+    } catch (profileBootstrapError) {
+      console.error('Exception creating initial profile:', profileBootstrapError)
+    }
+
     // Store user in localStorage
     if (typeof window !== 'undefined') {
       localStorage.setItem('currentUser', JSON.stringify({
         id: data.id,
         name: data.name,
         username_hash: data.username_hash,
-        created_at: data.created_at
+        created_at: createdAt
       }))
     }
 
@@ -69,7 +94,7 @@ export async function registerUser(name: string, username: string, password: str
         id: data.id,
         name: data.name,
         username_hash: data.username_hash,
-        created_at: data.created_at
+        created_at: createdAt
       }
     }
   } catch (error) {
@@ -97,12 +122,20 @@ export async function loginUser(username: string, password: string): Promise<{ s
       return { success: false, error: 'Invalid username or password' }
     }
 
-    // Store user in localStorage
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('currentUser', JSON.stringify(data))
+    const createdAt = data.created_at ?? new Date().toISOString()
+    const userPayload: User = {
+      id: data.id,
+      name: data.name,
+      username_hash: data.username_hash,
+      created_at: createdAt,
     }
 
-    return { success: true, user: data }
+    // Store user in localStorage
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('currentUser', JSON.stringify(userPayload))
+    }
+
+    return { success: true, user: userPayload }
   } catch (error) {
     console.error('Login error:', error)
     return { success: false, error: 'An error occurred during login' }
