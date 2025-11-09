@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Terminal, User, Lock, Eye, EyeOff, Loader2, CheckCircle2, AlertCircle } from 'lucide-react'
+import { Terminal, User, Lock, Eye, EyeOff, Loader2, CheckCircle2, AlertCircle, Mail } from 'lucide-react'
 import { registerUser } from '@/lib/auth'
 import { useAuth } from '@/contexts/AuthContext'
 import { ArchetypeSelector } from '@/components/ArchetypeSelector'
@@ -15,6 +15,7 @@ export default function SignupPage() {
   const { setUser } = useAuth()
   const [name, setName] = useState('')
   const [username, setUsername] = useState('')
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [archetype, setArchetype] = useState<ArchetypeId | null>(null)
@@ -105,6 +106,15 @@ export default function SignupPage() {
       setError('Username must be at least 3 characters')
       return false
     }
+    if (!email.trim()) {
+      setError('Email is required')
+      return false
+    }
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailPattern.test(email.trim())) {
+      setError('Enter a valid email address')
+      return false
+    }
     if (!password) {
       setError('Password is required')
       return false
@@ -133,7 +143,7 @@ export default function SignupPage() {
     setIsSubmitting(true)
 
     try {
-      const result = await registerUser(name, username, password, archetype!)
+      const result = await registerUser(name, username, email.trim(), password, archetype!)
       
       if (result.success) {
         setUser(result.user)
@@ -388,6 +398,25 @@ export default function SignupPage() {
                   <p className="text-xs text-green-400/50 mt-1">
                     Min 3 characters. Will be hashed with SHA-256.
                   </p>
+                </div>
+
+                {/* Email field */}
+                <div>
+                  <label className="block text-sm mb-2 text-green-400/70">
+                    <span className="text-green-400">$</span> EMAIL:
+                  </label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-green-400/50" />
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="Enter your email address"
+                      className="w-full pl-10 pr-4 py-3 bg-black/50 border border-green-400/30 text-green-400 placeholder-green-400/30 focus:border-green-400 focus:outline-none transition-colors"
+                      disabled={isSubmitting}
+                      required
+                    />
+                  </div>
                 </div>
 
                 {/* Archetype selection */}

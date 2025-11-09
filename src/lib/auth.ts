@@ -5,6 +5,7 @@ import { supabase } from './supabase'
 export interface User {
   id: string
   name: string
+  email: string | null
   username_hash: string
   created_at: string
 }
@@ -23,10 +24,13 @@ export async function sha256Hash(input: string): Promise<string> {
 export async function registerUser(
   name: string,
   username: string,
+  email: string,
   password: string,
   archetype: ArchetypeId
 ): Promise<{ success: true; user: User } | { success: false; error: string }> {
   try {
+    const normalizedEmail = email.trim().toLowerCase()
+
     // Hash the username and password
     const usernameHash = await sha256Hash(username)
     const passwordHash = await sha256Hash(password)
@@ -42,11 +46,23 @@ export async function registerUser(
       return { success: false, error: 'Username already exists' }
     }
 
+    // Check if email already exists
+    const { data: existingEmail } = await supabase
+      .from('users')
+      .select('id')
+      .eq('email', normalizedEmail)
+      .maybeSingle()
+
+    if (existingEmail) {
+      return { success: false, error: 'Email already registered' }
+    }
+
     // Insert new user
     const { data, error } = await supabase
       .from('users')
       .insert<Database['public']['Tables']['users']['Insert']>([{
         name,
+        email: normalizedEmail,
         username_hash: usernameHash,
         password_hash: passwordHash,
       }])
@@ -64,12 +80,15 @@ export async function registerUser(
     try {
       const { error: profileError } = await supabase
         .from('userinfo')
-        .insert<Database['public']['Tables']['userinfo']['Insert']>([{
+        .upsert<Database['public']['Tables']['userinfo']['Insert']>([{
           user_id: data.id,
           username,
+          email: normalizedEmail,
           archetype,
           is_public: true,
-        }])
+        }], {
+          onConflict: 'user_id',
+        })
 
       if (profileError) {
         console.error('Profile bootstrap error:', profileError)
@@ -83,6 +102,7 @@ export async function registerUser(
       localStorage.setItem('currentUser', JSON.stringify({
         id: data.id,
         name: data.name,
+        email: data.email ?? normalizedEmail,
         username_hash: data.username_hash,
         created_at: createdAt
       }))
@@ -93,6 +113,7 @@ export async function registerUser(
       user: {
         id: data.id,
         name: data.name,
+        email: data.email ?? normalizedEmail,
         username_hash: data.username_hash,
         created_at: createdAt
       }
@@ -113,7 +134,7 @@ export async function loginUser(username: string, password: string): Promise<{ s
     // Check if user exists with matching credentials
     const { data, error } = await supabase
       .from('users')
-      .select('id, name, username_hash, created_at')
+      .select('id, name, email, username_hash, created_at')
       .eq('username_hash', usernameHash)
       .eq('password_hash', passwordHash)
       .single()
@@ -126,6 +147,7 @@ export async function loginUser(username: string, password: string): Promise<{ s
     const userPayload: User = {
       id: data.id,
       name: data.name,
+      email: data.email ?? null,
       username_hash: data.username_hash,
       created_at: createdAt,
     }
@@ -157,7 +179,24 @@ export function getCurrentUser(): User | null {
   if (!userStr) return null
   
   try {
-    return JSON.parse(userStr)
+    const parsed = JSON.parse(userStr) as Partial<User>
+    if (
+      !parsed ||
+      typeof parsed.id !== 'string' ||
+      typeof parsed.name !== 'string' ||
+      typeof parsed.username_hash !== 'string' ||
+      typeof parsed.created_at !== 'string'
+    ) {
+      return null
+    }
+
+    return {
+      id: parsed.id,
+      name: parsed.name,
+      email: typeof parsed.email === 'string' ? parsed.email : null,
+      username_hash: parsed.username_hash,
+      created_at: parsed.created_at,
+    }
   } catch {
     return null
   }
