@@ -7,7 +7,8 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { 
   Terminal, User, Mail, Phone, MapPin, Github, Linkedin, 
-  Twitter, Instagram, Facebook, Upload, X, Loader2, AlertCircle, ArrowLeft, Save, Sparkles
+  Twitter, Instagram, Facebook, Upload, X, Loader2, AlertCircle, ArrowLeft, Save, Sparkles,
+  GraduationCap, Briefcase, Cpu
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
@@ -42,6 +43,9 @@ export default function EditProfilePage() {
     phone: '',
     bio: '',
     about: '',
+    education: '',
+    experience: '',
+    tech: '',
     github_url: '',
     linkedin_url: '',
     twitter_url: '',
@@ -217,6 +221,9 @@ export default function EditProfilePage() {
         phone: profile.phone?.trim() || null,
         bio: profile.bio?.trim() || null,
         about: profile.about?.trim() || null,
+        education: profile.education?.trim() || null,
+        experience: profile.experience?.trim() || null,
+        tech: profile.tech?.trim() || null,
         github_url: profile.github_url?.trim() || null,
         linkedin_url: profile.linkedin_url?.trim() || null,
         twitter_url: profile.twitter_url?.trim() || null,
@@ -246,6 +253,8 @@ export default function EditProfilePage() {
             p_phone: profileData.phone,
             p_bio: profileData.bio,
             p_about: profileData.about,
+            p_education: profileData.education,
+            p_experience: profileData.experience,
             p_github_url: profileData.github_url,
             p_linkedin_url: profileData.linkedin_url,
             p_twitter_url: profileData.twitter_url,
@@ -259,6 +268,7 @@ export default function EditProfilePage() {
             p_postal_code: profileData.postal_code,
             p_archetype: profileData.archetype,
             p_is_public: profileData.is_public,
+            p_tech: profileData.tech,
           })
 
         if (!functionError && functionResult) {
@@ -565,6 +575,54 @@ export default function EditProfilePage() {
                 rows={6}
                 className="w-full px-4 py-3 bg-black/50 border border-green-400/30 text-green-400 placeholder-green-400/30 focus:border-green-400 focus:outline-none transition-colors font-mono"
               />
+            </section>
+
+            {/* Education */}
+            <section>
+              <h2 className="text-xl font-bold mb-4 flex items-center space-x-2">
+                <GraduationCap className="w-5 h-5" />
+                <span>EDUCATION</span>
+              </h2>
+              <textarea
+                value={profile.education || ''}
+                onChange={(e) => setProfile({ ...profile, education: e.target.value })}
+                placeholder="Schools, certifications, notable training..."
+                rows={4}
+                className="w-full px-4 py-3 bg-black/50 border border-green-400/30 text-green-400 placeholder-green-400/30 focus:border-green-400 focus:outline-none transition-colors font-mono"
+              />
+            </section>
+
+            {/* Experience */}
+            <section>
+              <h2 className="text-xl font-bold mb-4 flex items-center space-x-2">
+                <Briefcase className="w-5 h-5" />
+                <span>EXPERIENCE</span>
+              </h2>
+              <textarea
+                value={profile.experience || ''}
+                onChange={(e) => setProfile({ ...profile, experience: e.target.value })}
+                placeholder="Mission history, roles, accomplishments..."
+                rows={5}
+                className="w-full px-4 py-3 bg-black/50 border border-green-400/30 text-green-400 placeholder-green-400/30 focus:border-green-400 focus:outline-none transition-colors font-mono"
+              />
+            </section>
+
+            {/* Tech */}
+            <section>
+              <h2 className="text-xl font-bold mb-4 flex items-center space-x-2">
+                <Cpu className="w-5 h-5" />
+                <span>TECH</span>
+              </h2>
+              <textarea
+                value={profile.tech || ''}
+                onChange={(e) => setProfile({ ...profile, tech: e.target.value })}
+                placeholder="Stack intel (comma or newline separated, e.g., React, Next.js, Supabase)"
+                rows={4}
+                className="w-full px-4 py-3 bg-black/50 border border-green-400/30 text-green-400 placeholder-green-400/30 focus:border-green-400 focus:outline-none transition-colors font-mono"
+              />
+              <p className="text-xs text-green-400/60 mt-2">
+                Separate entries with commas or line breaks to display as individual badges on your profile.
+              </p>
             </section>
 
             {/* Social Links */}

@@ -162,7 +162,9 @@ export type Database = {
           city: string | null
           country: string | null
           created_at: string | null
+          education: string | null
           email: string | null
+          experience: string | null
           facebook_url: string | null
           gender: string | null
           github_url: string | null
@@ -176,6 +178,7 @@ export type Database = {
           state: string | null
           twitter_url: string | null
           updated_at: string | null
+          tech: string | null
           user_id: string
           username: string
         }
@@ -188,7 +191,9 @@ export type Database = {
           city?: string | null
           country?: string | null
           created_at?: string | null
+          education?: string | null
           email?: string | null
+          experience?: string | null
           facebook_url?: string | null
           gender?: string | null
           github_url?: string | null
@@ -202,6 +207,7 @@ export type Database = {
           state?: string | null
           twitter_url?: string | null
           updated_at?: string | null
+          tech?: string | null
           user_id: string
           username: string
         }
@@ -214,7 +220,9 @@ export type Database = {
           city?: string | null
           country?: string | null
           created_at?: string | null
+          education?: string | null
           email?: string | null
+          experience?: string | null
           facebook_url?: string | null
           gender?: string | null
           github_url?: string | null
@@ -228,6 +236,7 @@ export type Database = {
           state?: string | null
           twitter_url?: string | null
           updated_at?: string | null
+          tech?: string | null
           user_id?: string
           username?: string
         }
@@ -285,7 +294,9 @@ export type Database = {
           p_bio?: string
           p_city?: string
           p_country?: string
+          p_education?: string
           p_email?: string
+          p_experience?: string
           p_facebook_url?: string
           p_gender?: string
           p_github_url?: string
@@ -296,6 +307,7 @@ export type Database = {
           p_photo_url?: string
           p_postal_code?: string
           p_state?: string
+          p_tech?: string
           p_twitter_url?: string
           p_user_id: string
           p_username: string
@@ -309,7 +321,9 @@ export type Database = {
           city: string | null
           country: string | null
           created_at: string | null
+          education: string | null
           email: string | null
+          experience: string | null
           facebook_url: string | null
           gender: string | null
           github_url: string | null
@@ -323,6 +337,7 @@ export type Database = {
           state: string | null
           twitter_url: string | null
           updated_at: string | null
+          tech: string | null
           user_id: string
           username: string
         }

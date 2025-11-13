@@ -16,12 +16,30 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Life as an SDE",
-  description: "Anonymous tech discussions, memes, and developer life. Share your thoughts, experiences, and memes without accounts. Real-time updates, reactions, and community-driven content.",
-  keywords: ["tech", "developer", "programming", "anonymous", "bulletin board", "discussions", "memes", "community"],
-  authors: [{ name: "Life as an SDE" }],
-  creator: "Life as an SDE",
-  publisher: "Life as an SDE",
+  metadataBase: new URL("https://life-as-sde.vercel.app"),
+  title: {
+    default: "SUDONET — Cyberpunk Developer Terminal",
+    template: "%s | SUDONET",
+  },
+  applicationName: "SUDONET",
+  description:
+    "SUDONET is an anonymous cyberpunk bulletin board for developers. Share rants, lore, and insights with real-time posts, archetypes, and a neon terminal interface.",
+  keywords: [
+    "SUDONET",
+    "developer community",
+    "anonymous posting",
+    "cyberpunk UI",
+    "tech bulletin board",
+    "real-time app",
+    "supabase",
+  ],
+  authors: [{ name: "SUDONET" }],
+  creator: "SUDONET",
+  publisher: "SUDONET",
+  category: "technology",
+  alternates: {
+    canonical: "https://life-as-sde.vercel.app",
+  },
   robots: {
     index: true,
     follow: true,
@@ -37,22 +55,24 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'en_US',
     url: 'https://life-as-sde.vercel.app',
-    title: 'Life as an SDE - Tech Bulletin Board',
-    description: 'Anonymous tech discussions, memes, and developer life. Share your thoughts, experiences, and memes without accounts.',
-    siteName: 'Life as an SDE',
+    title: 'SUDONET — Cyberpunk Developer Terminal',
+    description:
+      'SUDONET is an anonymous cyberpunk bulletin board for developers. Share rants, lore, and insights with real-time posts, archetypes, and a neon terminal interface.',
+    siteName: 'SUDONET',
     images: [
       {
         url: '/og-image.png',
         width: 1200,
         height: 630,
-        alt: 'Life as an SDE - Tech Bulletin Board',
+        alt: 'SUDONET — Cyberpunk Developer Terminal',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Life as an SDE - Tech Bulletin Board',
-    description: 'Anonymous tech discussions, memes, and developer life. Share your thoughts, experiences, and memes without accounts.',
+    title: 'SUDONET — Cyberpunk Developer Terminal',
+    description:
+      'SUDONET is an anonymous cyberpunk bulletin board for developers. Share rants, lore, and insights with real-time posts, archetypes, and a neon terminal interface.',
     images: ['/og-image.png'],
   },
   icons: {

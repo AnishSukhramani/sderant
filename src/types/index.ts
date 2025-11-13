@@ -46,6 +46,9 @@ export type UserInfo = {
   phone: string | null
   bio: string | null
   about: string | null
+  education: string | null
+  experience: string | null
+  tech: string | null
   github_url: string | null
   linkedin_url: string | null
   twitter_url: string | null

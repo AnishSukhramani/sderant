@@ -1,138 +1,138 @@
-# Life as an SDE - Tech Bulletin Board
+# Life as an SDE — Cyberpunk Tech Bulletin Board
 
-A fun, anonymous tech bulletin board where developers can share thoughts, memes, and experiences without needing accounts.
+> Step into a neon-lit intranet where developers broadcast from the thin line between utopia and dystopia.
 
-## Features
+Life as an SDE is a realtime, anonymous bulletin board built to feel like the command center of a cyberpunk megacity. Posts, profiles, archetypes, and data visualizations ripple across a terminal-inspired HUD that balances pristine utopian systems with the gritty noise of the street.
 
-- 🚀 **Anonymous Posting** - No accounts needed, just post freely
-- 🖼️ **Image Support** - Attach images to your posts
-- 💬 **Real-time Comments** - Instant commenting system
-- 😄 **Reactions** - Like, heart, laugh, or express anger
-- 📈 **Trending Algorithm** - See what's hot in the last hour, day, or all time
-- ⚡ **Real-time Updates** - Live feed updates using Supabase subscriptions
-- 🎨 **Geeky UI** - Terminal-inspired design with glitch effects
+## Concept
 
-## Tech Stack
+- Craft the sensation of a corporate-grade intranet that has been reclaimed by underground engineers.
+- Fuse utopian clarity (perfect grid systems, structured metrics, disciplined typography) with dystopian artifacts (glitch pulses, scanlines, fragmented vectors).
+- Encourage builders to share lore, intelligence, and memes inside an environment that always feels alive, reactive, and a little unstable.
 
-- **Frontend**: Next.js 15 with TypeScript
-- **Styling**: Tailwind CSS with custom terminal theme
-- **Database**: Supabase (PostgreSQL)
-- **Storage**: Supabase Storage for images
-- **Real-time**: Supabase Realtime subscriptions
-- **Icons**: Lucide React
+## Experience & UI
 
-## Setup Instructions
+### Layout & Flow
+- Responsive multi-column grid anchored by the live post feed, flanked by search, trending filters, and archetype intel.
+- Panels animate with `framer-motion` to behave like holographic tiles that slide, fade, and fold as the network shifts.
+- Supabase realtime channels stream posts, comments, reactions, and profile updates without leaving the session.
 
-### 1. Clone and Install
+### Visual Language
+- Palette defined in `src/app/globals.css`: asphalt black `#0A0A0A`, phosphor green `#00FF41`, and sunburnt accent `#FF6B35`.
+- Glitch typography (`.glitch` keyframes), matrix grid overlays, and neon stroked borders recreate a volumetric terminal wall.
+- Archetype badges (`src/components/ArchetypeBadge.tsx`) glow with faction colors, referencing utopian guilds and dystopian street crews.
+
+### Motion & Ambient Systems
+- Custom cursor (`src/components/CustomCursor.tsx`) trails glyph particles, rotates with scroll depth, and detonates micro-particles on click.
+- Scanlines, floating pulses, and animated matrix backgrounds sustain the hum of a living control room.
+- Magnetic buttons, smooth scroll, and progressive reveals keep interactions precise and deliberate—utopian choreography layered over dystopian grit.
+
+### Narrative: Utopia ↔ Dystopia
+- **Utopian systems**: transparent metrics (`street_creds`, comment velocity, view momentum), curated trending windows, structured data visualization (world map arcs in `src/components/ui/world-map.tsx`).
+- **Dystopian overlays**: anonymous posts, glitching panels, archetype lore hidden in tooltips, and a constant suggestion that the protocol can mutate.
+
+## Feature Overview
+
+- 🚀 Anonymous posting with optional archetype-aligned handles.
+- 💬 Real-time reactions and comment threads driven by Supabase subscriptions.
+- 🖼️ Media uploads stored in Supabase Storage with inline previews.
+- 📊 Trending algorithm combining street cred, comment velocity, and view counts.
+- 🧭 Archetype system with lore-driven badges, selectors, and profile surfaces.
+- 🌐 Ambient data viz such as animated dotted world maps to broadcast the network’s reach.
+
+## Stack & Architecture
+
+- **Framework**: Next.js 15 (App Router) + TypeScript.
+- **Styling & Motion**: Tailwind CSS with custom cyberpunk tokens, `framer-motion`, and Lucide icons.
+- **Backend-as-a-Service**: Supabase for auth, PostgreSQL, storage, and realtime pub/sub.
+- **State Management**: React hooks and dedicated context providers in `src/contexts`.
+- **Utilities**: Utility helpers in `src/lib`, typed Supabase client in `src/lib/supabase.ts`.
+
+## Getting Started
+
+### Prerequisites
+- Node.js 20+ (matches the Next.js 15 runtime expectations).
+- Supabase project for database, auth, and realtime features.
+
+### Clone & Install
 
 ```bash
-git clone <your-repo>
-cd life-as-sde
+git clone https://github.com/<your-org>/sderant.git
+cd sderant
 npm install
 ```
 
-### 2. Set up Supabase
+### Configure Environment
 
-1. Create a new project at [supabase.com](https://supabase.com)
-2. Go to Settings > API to get your URL and anon key
-3. Copy `.env.local.example` to `.env.local` and fill in your Supabase credentials:
+Copy the template and add your Supabase credentials:
 
-```env
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_url_here
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key_here
+```bash
+cp .env.local.example .env.local
 ```
 
-### 3. Set up Database
+```env
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+SUPABASE_SERVICE_ROLE_KEY=optional_for_local_scripts
+```
 
-1. Go to your Supabase project's SQL Editor
-2. Run the contents of `supabase-schema.sql` to create the database tables
-3. Run the contents of `setup-storage.sql` to set up image storage
+Only the public URL and anon key are required for local development. Keep service role keys out of the browser.
 
-### 4. Run the Application
+### Provision Database & Storage
+
+1. In Supabase SQL Editor, run `supabase-schema.sql` to create tables (`posts`, `comments`, `street_creds`, `userinfo`, etc.).
+2. Execute `setup-storage.sql` to provision the storage bucket used for image uploads.
+3. (Optional) Apply the migration guides and security hardening scripts in the repository when you extend the universe.
+
+### Run the Terminal
 
 ```bash
 npm run dev
 ```
 
-Visit `http://localhost:3000` to see your tech bulletin board!
+Visit `http://localhost:3000` to connect to the board. Create an account through the cybernetic auth portal or jump straight into anonymous posting.
 
-## Database Schema
+### Useful Scripts
 
-### Posts Table
-- `id` - UUID primary key
-- `name` - Optional display name
-- `title` - Post title (required)
-- `content` - Post content (required)
-- `image_url` - Optional image URL
-- `created_at` - Timestamp
-- `likes_count` - Number of reactions
-- `comments_count` - Number of comments
-- `views_count` - Number of views
+- `npm run lint` — enforce project conventions.
+- `npm run build` — production build smoke test.
+- `npm run test` — hook up your preferred testing stack (placeholder for now).
 
-### Comments Table
-- `id` - UUID primary key
-- `post_id` - Foreign key to posts
-- `name` - Optional commenter name
-- `content` - Comment content
-- `created_at` - Timestamp
+## Key Files & Modules
 
-### Reactions Table
-- `id` - UUID primary key
-- `post_id` - Foreign key to posts
-- `type` - Reaction type (like, dislike, laugh, angry, heart)
-- `ip_address` - Anonymous identifier
-- `created_at` - Timestamp
+- `src/app/app/page.tsx` — primary hub layout, feed orchestration, search, and realtime hydration.
+- `src/app/globals.css` — theme variables, glitch keyframes, scanline overlays, and custom cursor styling.
+- `src/components/PostForm.tsx` / `PostCard.tsx` — creation + display surfaces with neon framing and reaction controls.
+- `src/components/CustomCursor.tsx` — adaptive terminal cursor with particle trails.
+- `src/components/ArchetypeSelector.tsx` — faction selector UI with lore-rich descriptions.
+- `src/components/ui/world-map.tsx` — dotted world map visualization for ambient storytelling.
+- `src/contexts/AuthContext.tsx` — Supabase auth state, session management, and logout portal.
+- `src/lib/archetypes.ts` — archetype metadata, color systems, and iconography.
 
-## Features in Detail
+## Customizing the Neon Theme
 
-### Anonymous System
-- No user accounts required
-- Uses IP addresses for basic reaction tracking
-- Optional name fields for personalization
-
-### Real-time Updates
-- Live post updates using Supabase subscriptions
-- Instant comment and reaction updates
-- No page refresh needed
-
-### Trending Algorithm
-- Combines likes, comments, and views for trending score
-- Filter by time periods (hour, day, all time)
-- Real-time trending calculations
-
-### Image Upload
-- Direct upload to Supabase Storage
-- Automatic URL generation
-- Image preview before posting
-
-## Customization
-
-### Styling
-The app uses a custom terminal theme with:
-- Dark background (#0a0a0a)
-- Green text (#00ff41)
-- Orange accents (#ff6b35)
-- Glitch effects for headings
-- Matrix-style background patterns
-
-### Database
-All database operations use Supabase's client library with Row Level Security (RLS) enabled for anonymous access.
+- Update palette, scanline frequency, and glow intensity in `src/app/globals.css`.
+- Modify archetype lore, colors, and copy in `src/lib/archetypes.ts` to invent new factions.
+- Tweak motion curves or introduce new holographic panels in `src/components` (e.g., extend `MagneticButton` or craft additional ambient widgets).
+- Layer new background stories—city maps, live metrics, audio-reactive visuals—using the existing animation scaffolding.
 
 ## Deployment
 
-### Vercel (Recommended)
-1. Push your code to GitHub
-2. Connect your repo to Vercel
-3. Add your environment variables
-4. Deploy!
+### Vercel (recommended)
+
+1. Push the project to GitHub/GitLab.
+2. Import the repo into Vercel and choose the Next.js preset.
+3. Define `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and any server-side keys.
+4. Deploy. Edge caching keeps the board responsive across the megacity.
 
 ### Other Platforms
-The app is a standard Next.js application and can be deployed to any platform that supports Node.js.
+
+The app ships as a standard Next.js 15 project—deploy to Netlify, Render, Fly.io, or Supabase Functions as long as Node.js 20+ is available and environment variables are configured.
 
 ## Contributing
 
-Feel free to submit issues and enhancement requests! This is meant to be a fun, community-driven project.
+Open issues, share ideas, or submit pull requests. Whether you polish the utopian surfaces or double down on dystopian glitch, every contribution expands the story.
 
 ## License
 
-MIT License - feel free to use this for your own projects!
+MIT License — fork it, remix it, and spin up your own neon-fed developer intranet.
