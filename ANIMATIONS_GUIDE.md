@@ -237,7 +237,7 @@ This document describes all the cool animations implemented in the profile featu
 
 ### Glitch Effect (Text)
 ```
-SUDONET.exe
+sudonet.exe
 S̴U̵D̶O̷N̸E̴T̵.̶e̷x̸e̴  ← Multiple offset shadows
 S̷U̸D̴O̵N̶E̷T̸.̴e̵x̶e̷
 ```

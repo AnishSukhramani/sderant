@@ -18,7 +18,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL("https://life-as-sde.vercel.app"),
   title: {
-    default: "SUDONET — Cyberpunk Developer Terminal",
+    default: "sudonet",
     template: "%s | SUDONET",
   },
   applicationName: "SUDONET",

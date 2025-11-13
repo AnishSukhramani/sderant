@@ -36,7 +36,7 @@ export default function LandingPage() {
             <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2 sm:space-x-3">
               <Terminal className="w-6 h-6 sm:w-8 sm:h-8 text-[#00ff41]" />
-              <h1 className="text-lg sm:text-xl md:text-2xl font-bold glitch">SUDONET.exe</h1>
+              <h1 className="text-lg sm:text-xl md:text-2xl font-bold glitch">sudonet.exe</h1>
             </div>
             <Link href="/app">
               <MagneticButton
