@@ -61,10 +61,11 @@ export const metadata: Metadata = {
     siteName: 'SUDONET',
     images: [
       {
-        url: '/og-image.png',
-        width: 1200,
-        height: 630,
-        alt: 'SUDONET — Cyberpunk Developer Terminal',
+        url: '/favicon.svg',
+        width: 256,
+        height: 256,
+        alt: 'sudonet anish sukhramani',
+        type: 'image/svg+xml',
       },
     ],
   },
@@ -73,15 +74,19 @@ export const metadata: Metadata = {
     title: 'SUDONET — Cyberpunk Developer Terminal',
     description:
       'SUDONET is an anonymous cyberpunk bulletin board for developers. Share rants, lore, and insights with real-time posts, archetypes, and a neon terminal interface.',
-    images: ['/og-image.png'],
+    images: [
+      {
+        url: '/favicon.svg',
+        alt: 'SUDONET neon terminal emblem',
+      },
+    ],
   },
   icons: {
     icon: [
-      { url: '/favicon.svg', type: 'image/svg+xml' },
-      { url: '/favicon.ico', sizes: 'any' }
+      { url: '/favicon.svg', type: 'image/svg+xml' }
     ],
-    shortcut: '/favicon.svg',
-    apple: '/favicon.svg',
+    shortcut: [{ url: '/favicon.svg', type: 'image/svg+xml' }],
+    apple: [{ url: '/favicon.svg', type: 'image/svg+xml' }],
   },
   manifest: '/site.webmanifest',
 };
@@ -97,7 +102,6 @@ export default function RootLayout({
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="theme-color" content="#10b981" />
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-        <link rel="alternate icon" href="/favicon.ico" />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
