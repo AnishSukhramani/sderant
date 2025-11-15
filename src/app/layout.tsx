@@ -21,13 +21,13 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://life-as-sde.vercel.app"),
   title: {
     default: "sudonet",
-    template: "%s | SUDONET",
+    template: "%s | sudonet",
   },
-  applicationName: "SUDONET",
+  applicationName: "sudonet",
   description:
-    "SUDONET is an anonymous cyberpunk bulletin board for developers. Share rants, lore, and insights with real-time posts, archetypes, and a neon terminal interface.",
+    "sudonet is an anonymous cyberpunk bulletin board for developers. Share rants, lore, and insights with real-time posts, archetypes, and a neon terminal interface.",
   keywords: [
-    "SUDONET",
+    "sudonet",
     "developer community",
     "anonymous posting",
     "cyberpunk UI",
@@ -35,9 +35,9 @@ export const metadata: Metadata = {
     "real-time app",
     "supabase",
   ],
-  authors: [{ name: "SUDONET" }],
-  creator: "SUDONET",
-  publisher: "SUDONET",
+  authors: [{ name: "sudonet" }],
+  creator: "sudonet",
+  publisher: "sudonet",
   category: "technology",
   alternates: {
     canonical: "https://life-as-sde.vercel.app",
@@ -57,29 +57,29 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'en_US',
     url: 'https://life-as-sde.vercel.app',
-    title: 'SUDONET — Cyberpunk Developer Terminal',
+    title: 'sudonet — Cyberpunk Developer Terminal',
     description:
-      'SUDONET is an anonymous cyberpunk bulletin board for developers. Share rants, lore, and insights with real-time posts, archetypes, and a neon terminal interface.',
-    siteName: 'SUDONET',
+      'sudonet is an anonymous cyberpunk bulletin board for developers. Share rants, lore, and insights with real-time posts, archetypes, and a neon terminal interface.',
+    siteName: 'sudonet',
     images: [
       {
         url: '/favicon.svg',
         width: 256,
         height: 256,
-        alt: 'sudonet anish sukhramani',
+        alt: 'sudonet',
         type: 'image/svg+xml',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'SUDONET — Cyberpunk Developer Terminal',
+    title: 'sudonet — Cyberpunk Developer Terminal',
     description:
-      'SUDONET is an anonymous cyberpunk bulletin board for developers. Share rants, lore, and insights with real-time posts, archetypes, and a neon terminal interface.',
+      'sudonet is an anonymous cyberpunk bulletin board for developers. Share rants, lore, and insights with real-time posts, archetypes, and a neon terminal interface.',
     images: [
       {
         url: '/favicon.svg',
-        alt: 'SUDONET neon terminal emblem',
+        alt: 'sudonet neon terminal emblem',
       },
     ],
   },

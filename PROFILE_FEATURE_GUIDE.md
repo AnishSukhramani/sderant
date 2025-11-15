@@ -2,7 +2,7 @@
 
 ## Overview
 
-The new profile feature adds user authentication to SUDONET with a Terminator-style cybersecurity theme. Users can now create accounts, login, and post with their username.
+The new profile feature adds user authentication to sudonet with a Terminator-style cybersecurity theme. Users can now create accounts, login, and post with their username.
 
 ## Features Implemented ✅
 

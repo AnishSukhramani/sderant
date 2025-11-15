@@ -265,7 +265,7 @@ export default function LandingPage() {
               {
                 step: '01',
                 title: 'OPEN_TERMINAL',
-                description: 'Navigate to SUDONET. No account needed, no email required. Just click and start.',
+                description: 'Navigate to sudonet. No account needed, no email required. Just click and start.',
                 command: '$ cd /sudonet && ./launch'
               },
               {
@@ -381,7 +381,7 @@ export default function LandingPage() {
               <Code className="w-10 h-10 sm:w-12 sm:h-12 text-blue-400 mb-4" />
               <h4 className="text-xl sm:text-2xl font-bold mb-3 text-[#00ff41]">MAKE_IT_BETTER</h4>
               <p className="text-[#00ff41]/70 mb-6 text-sm sm:text-base">
-                Open source and proud. Contribute code, report issues, or suggest improvements. Make SUDONET better for everyone.
+                Open source and proud. Contribute code, report issues, or suggest improvements. Make sudonet better for everyone.
               </p>
               <motion.a
                 href="https://github.com/yourusername/sderant"
@@ -436,7 +436,7 @@ export default function LandingPage() {
             <div className="flex items-center space-x-2">
               <Terminal className="w-6 h-6 text-[#00ff41]" />
               <span className="text-[#00ff41]/70 text-sm sm:text-base">
-                © 2025 SUDONET. Built with ❤️ by developers, for developers.
+                © 2025 sudonet. Built with ❤️ by developers, for developers.
               </span>
             </div>
             <div className="flex items-center space-x-6 text-sm sm:text-base">
