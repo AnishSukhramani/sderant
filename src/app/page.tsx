@@ -4,8 +4,14 @@ import { motion, useScroll, useTransform } from 'framer-motion'
 import { Terminal, Code, Users, Rocket, Heart, MessageSquare, Sparkles, ArrowRight, Github, Mail, DollarSign, Globe } from 'lucide-react'
 import Link from 'next/link'
 import { useRef, useEffect, useState } from 'react'
+import dynamic from 'next/dynamic'
 import { MagneticButton } from '@/components/MagneticButton'
-import { WorldMapDemo } from '@/components/WorldMapDemo'
+
+// Lazy load heavy components to improve FCP
+const WorldMapDemo = dynamic(() => import('@/components/WorldMapDemo').then(mod => ({ default: mod.WorldMapDemo })), {
+  ssr: false,
+  loading: () => <div className="fixed inset-0 w-full h-full -z-50 pointer-events-none bg-black" />
+})
 
 export default function LandingPage() {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -17,14 +23,24 @@ export default function LandingPage() {
   const heroOpacity = useTransform(scrollYProgress, [0, 0.2], [1, 0])
   const heroScale = useTransform(scrollYProgress, [0, 0.2], [1, 0.8])
 
+  const [showHeavyComponents, setShowHeavyComponents] = useState(false)
+
+  // Defer heavy components until after initial render
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowHeavyComponents(true)
+    }, 100)
+    return () => clearTimeout(timer)
+  }, [])
+
   return (
     <div ref={containerRef} className="min-h-screen text-[#00ff41] font-mono overflow-x-hidden relative">
-      {/* World Map Background */}
-      <WorldMapDemo />
+      {/* World Map Background - Lazy loaded */}
+      {showHeavyComponents && <WorldMapDemo />}
       
       {/* Matrix background */}
       <div className="fixed inset-0 matrix-bg pointer-events-none" />
-      <MatrixRain />
+      {showHeavyComponents && <MatrixRain />}
 
       {/* Navigation */}
       <motion.nav 

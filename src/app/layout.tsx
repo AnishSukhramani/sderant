@@ -1,20 +1,23 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { CustomCursor } from "@/components/CustomCursor";
-import { SmoothScroll } from "@/components/SmoothScroll";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { ClientComponents } from "@/components/ClientComponents";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
+  display: "swap",
+  preload: true,
 });
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+  display: "swap",
+  preload: true,
 });
 
 export const metadata: Metadata = {
@@ -104,14 +107,15 @@ export default function RootLayout({
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="theme-color" content="#10b981" />
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+        {/* Resource hints for faster loading */}
+        <link rel="dns-prefetch" href="https://us.i.posthog.com" />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         suppressHydrationWarning={true}
       >
         <AuthProvider>
-          <CustomCursor />
-          <SmoothScroll />
+          <ClientComponents />
           {children}
         </AuthProvider>
         <Analytics />

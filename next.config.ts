@@ -28,6 +28,14 @@ const nextConfig: NextConfig = {
 
   // This is required to support PostHog trailing slash API requests
   skipTrailingSlashRedirect: true,
+
+  // Performance optimizations
+  experimental: {
+    optimizePackageImports: ['framer-motion', 'lucide-react'],
+  },
+
+  // Compress output
+  compress: true,
 };
 
 export default withSentryConfig(nextConfig, {

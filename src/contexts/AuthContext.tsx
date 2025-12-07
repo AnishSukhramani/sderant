@@ -17,10 +17,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Load user from localStorage on mount
-    const currentUser = getCurrentUser()
-    setUser(currentUser)
-    setLoading(false)
+    // Load user from localStorage on mount - don't block render
+    // Use requestIdleCallback or setTimeout to defer non-critical work
+    const loadUser = () => {
+      const currentUser = getCurrentUser()
+      setUser(currentUser)
+      setLoading(false)
+    }
+
+    // Defer auth check to avoid blocking initial render
+    if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+      requestIdleCallback(loadUser, { timeout: 100 })
+    } else {
+      setTimeout(loadUser, 0)
+    }
   }, [])
 
   const logout = () => {
@@ -28,10 +38,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null)
   }
 
-  if (loading) {
-    return null // Or a loading spinner
-  }
-
+  // Always render children immediately - don't block FCP
   return (
     <AuthContext.Provider
       value={{
